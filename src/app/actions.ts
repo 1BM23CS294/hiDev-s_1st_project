@@ -70,7 +70,8 @@ export async function analyzeResume(prevState: FormState, formData: FormData): P
         experience: extractedInfo.experience.map(e => ({
           title: e.title,
           company: e.company,
-          startDate: e.duration, // Mapping duration to startDate
+          startDate: e.startDate,
+          endDate: e.endDate,
           description: e.description,
         })),
         education: extractedInfo.education.map(e => ({

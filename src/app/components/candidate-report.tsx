@@ -18,8 +18,6 @@ import { Separator } from '@/components/ui/separator';
 import type { AnalyzedCandidate } from '@/lib/types';
 import {
   Briefcase,
-  CheckCircle,
-  FileText,
   GraduationCap,
   Lightbulb,
   Mail,
@@ -28,8 +26,6 @@ import {
   Target,
   ThumbsDown,
   ThumbsUp,
-  User,
-  XCircle,
 } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
@@ -65,17 +61,17 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
             </Avatar>
             <div className="flex-1">
               <h2 className="text-2xl font-semibold leading-none tracking-tight">{candidate.name}</h2>
-              <CardDescription className="flex items-center gap-4 text-sm mt-1">
+              <div className="flex items-center gap-4 text-sm mt-1 text-muted-foreground">
                 {candidate.email && <span className="flex items-center gap-1"><Mail size={14} /> {candidate.email}</span>}
                 {candidate.phone && <span className="flex items-center gap-1"><Phone size={14} /> {candidate.phone}</span>}
-              </CardDescription>
+              </div>
             </div>
             <div className="flex flex-col items-end gap-2">
               <div className={`text-5xl font-bold ${getScoreColor(matchScore.matchScore)}`}>
                 {matchScore.matchScore}<span className="text-3xl text-muted-foreground">/100</span>
               </div>
               <Progress value={matchScore.matchScore} className="w-32 h-2" />
-              <CardDescription>Match Score</CardDescription>
+              <p className="text-sm text-muted-foreground">Match Score</p>
             </div>
           </div>
         </CardHeader>
@@ -100,7 +96,9 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                 {candidate.experience.length > 0 ? candidate.experience.map((exp, index) => (
                   <div key={index} className="pl-4 border-l-2">
                     <h3 className="font-semibold">{exp.title} at {exp.company}</h3>
-                    <p className="text-sm text-muted-foreground">{exp.duration}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {exp.startDate} {exp.endDate ? ` - ${exp.endDate}` : '- Present'}
+                    </p>
                     <p className="text-sm mt-1">{exp.description}</p>
                   </div>
                 )) : <p className="text-sm text-muted-foreground">No work experience found.</p>}
@@ -115,7 +113,7 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                 {candidate.education.length > 0 ? candidate.education.map((edu, index) => (
                   <div key={index} className="flex items-center justify-between">
                     <div>
-                      <p className="font-semibold">{edu.degree}</p>
+                      <h3 className="font-semibold">{edu.degree}</h3>
                       <p className="text-sm text-muted-foreground">{edu.institution}</p>
                     </div>
                     <p className="text-sm text-muted-foreground">{edu.year}</p>
@@ -171,8 +169,10 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                 </AccordionItem>
               </Accordion>
               <Separator className="my-4"/>
-              <p className="text-sm font-semibold">Overall Recommendation:</p>
-              <p className="text-sm text-muted-foreground mt-1">{recommendations.overallRecommendation}</p>
+              <div className="space-y-1">
+                <h3 className="font-semibold">Overall Recommendation:</h3>
+                <p className="text-sm text-muted-foreground">{recommendations.overallRecommendation}</p>
+              </div>
             </CardContent>
           </Card>
         </div>

@@ -13,9 +13,17 @@ import {z} from 'genkit';
 const ExperienceSchema = z.object({
   title: z.string().describe('The job title or role.'),
   company: z.string().describe('The company where the experience was gained.'),
-  duration: z
+  startDate: z
     .string()
-    .describe('The start and end dates or total duration of the experience.'),
+    .describe(
+      'The start date of the experience (e.g., "YYYY-MM" or "Month YYYY").'
+    ),
+  endDate: z
+    .string()
+    .optional()
+    .describe(
+      'The end date of the experience (e.g., "YYYY-MM" or "Month YYYY"), or "Present" if current.'
+    ),
   description: z
     .string()
     .describe('A brief description of responsibilities and achievements.'),
@@ -55,7 +63,7 @@ const ExtractResumeInformationOutputSchema = z.object({
   experience: z
     .array(ExperienceSchema)
     .describe(
-      'A list of work experiences, each with title, company, duration, and description.'
+      'A list of work experiences, each with title, company, start date, end date, and description.'
     ),
   education: z
     .array(EducationSchema)
@@ -90,7 +98,8 @@ The resume content is provided as an image/document. Analyze the document carefu
 - A list of work experiences, each including:
     - Job title or role
     - Company name
-    - Duration (start and end dates or total duration)
+    - Start Date (e.g., "YYYY-MM" or "Month YYYY")
+    - End Date (e.g., "YYYY-MM" or "Month YYYY", or "Present" if current)
     - A brief description of responsibilities and achievements
 - A list of educational background entries, each including:
     - Degree obtained
