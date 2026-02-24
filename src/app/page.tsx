@@ -1,8 +1,7 @@
-
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useState, useEffect, useRef } from 'react';
+import { useFormStatus } from 'react-dom';
 import { FileText, UploadCloud, Users, Loader2 } from 'lucide-react';
 import { analyzeResume } from '@/app/actions';
 import type { AnalyzedCandidate } from '@/lib/types';
@@ -55,7 +54,7 @@ const initialState: {
 };
 
 export default function Home() {
-  const [state, formAction] = useFormState(analyzeResume, initialState);
+  const [state, formAction] = useActionState(analyzeResume, initialState);
   const [candidates, setCandidates] = useState<AnalyzedCandidate[]>([]);
   const [selectedCandidate, setSelectedCandidate] = useState<AnalyzedCandidate | null>(null);
   const [fileName, setFileName] = useState('');
