@@ -64,16 +64,16 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
               <AvatarFallback className="text-xl bg-muted">{getInitials(candidate.name)}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <CardTitle className="text-2xl">{candidate.name}</CardTitle>
+              <h2 className="text-2xl font-semibold leading-none tracking-tight">{candidate.name}</h2>
               <CardDescription className="flex items-center gap-4 text-sm mt-1">
                 {candidate.email && <span className="flex items-center gap-1"><Mail size={14} /> {candidate.email}</span>}
                 {candidate.phone && <span className="flex items-center gap-1"><Phone size={14} /> {candidate.phone}</span>}
               </CardDescription>
             </div>
             <div className="flex flex-col items-end gap-2">
-              <CardTitle className={`text-5xl font-bold ${getScoreColor(matchScore.matchScore)}`}>
+              <div className={`text-5xl font-bold ${getScoreColor(matchScore.matchScore)}`}>
                 {matchScore.matchScore}<span className="text-3xl text-muted-foreground">/100</span>
-              </CardTitle>
+              </div>
               <Progress value={matchScore.matchScore} className="w-32 h-2" />
               <CardDescription>Match Score</CardDescription>
             </div>
