@@ -1,10 +1,15 @@
+
+import { cn } from '@/lib/utils';
 import { Briefcase } from 'lucide-react';
 
-export function Logo() {
+export function Logo({ size = 'default' }: { size?: 'default' | 'lg' }) {
+  const isLarge = size === 'lg';
   return (
-    <div className="flex items-center gap-2">
-      <Briefcase className="h-6 w-6 text-primary" />
-      <h1 className="text-xl font-bold">CareerMatch AI</h1>
+    <div className={cn("flex items-center gap-2", isLarge && "flex-col gap-1")}>
+      <Briefcase className={cn("text-primary", isLarge ? "h-8 w-8" : "h-6 w-6")} />
+      <h1 className={cn("font-bold", isLarge ? "text-2xl" : "text-xl")}>
+        CareerMatch AI
+      </h1>
     </div>
   );
 }

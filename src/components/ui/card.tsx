@@ -1,3 +1,4 @@
+
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
@@ -33,7 +34,7 @@ const CardTitle = React.forwardRef<
   HTMLHeadingElement,
   React.HTMLAttributes<HTMLHeadingElement>
 >(({ className, children, ...props }, ref) => (
-  <h2
+  <h3
     ref={ref}
     className={cn(
       "text-lg font-semibold leading-none tracking-tight",
@@ -42,7 +43,7 @@ const CardTitle = React.forwardRef<
     {...props}
   >
     {children}
-  </h2>
+  </h3>
 ))
 CardTitle.displayName = "CardTitle"
 
