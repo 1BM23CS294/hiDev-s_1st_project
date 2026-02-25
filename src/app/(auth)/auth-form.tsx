@@ -24,7 +24,6 @@ import { GoogleIcon } from './google-icon';
 import { cn } from '@/lib/utils';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
-import Image from 'next/image';
 
 type AuthMode = 'login' | 'signup';
 
@@ -64,7 +63,6 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   }, [user, isUserLoading, router]);
 
   const handleAuthError = (err: AuthError) => {
-    console.error(err);
     let message = 'An unknown error occurred.';
     switch (err.code) {
       case 'auth/user-not-found':
@@ -205,14 +203,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   return (
     <Card className="w-full max-w-md bg-card/20 backdrop-blur-md border border-primary/30 shadow-2xl shadow-primary/10">
         <CardHeader className="text-center space-y-4">
-            <Image
-              src="https://storage.googleapis.com/aif-stg-testing-images/samir-hidevs-logo.png"
-              alt="Samir HiDev's Logo"
-              width={180}
-              height={60}
-              className="object-contain mx-auto"
-              priority
-            />
+            <h1 className="text-2xl font-bold">Samir HiDev's</h1>
             <div>
               <CardTitle className="text-2xl">{title}</CardTitle>
               <CardDescription>{description}</CardDescription>

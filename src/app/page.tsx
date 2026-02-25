@@ -21,7 +21,6 @@ import { useAuth, useUser } from '@/firebase';
 import { redirect } from 'next/navigation';
 import { PageLoader } from '@/components/ui/page-loader';
 import { signOut } from 'firebase/auth';
-import { Logo } from '@/components/logo';
 import { Badge } from '@/components/ui/badge';
 import { FeedbackCard } from './components/feedback-card';
 
@@ -197,7 +196,7 @@ export default function Home() {
                  <Card className="bg-card/20 backdrop-blur-sm border-primary/30">
                     <CardHeader className="bg-black/30 rounded-t-lg">
                         <div className="flex items-center justify-between">
-                            <Logo />
+                            <h1 className="text-xl font-bold">Samir HiDev's</h1>
                              <div className="flex items-center gap-2">
                                 <Avatar className="h-8 w-8">
                                     <AvatarImage src={user.photoURL ?? undefined} />
