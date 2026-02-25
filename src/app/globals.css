@@ -67,7 +67,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-image: url('https://storage.googleapis.com/aif-stg-testing-images/analysis-report.png');
+    background-image: url('https://storage.googleapis.com/aif-stg-testing-images/robot-coding-background.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
