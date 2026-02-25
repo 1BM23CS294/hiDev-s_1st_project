@@ -122,7 +122,6 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         };
 
         setDoc(userDocRef, userData).catch((error) => {
-          console.error("Error creating user document:", error);
           const permissionError = new FirestorePermissionError({
             path: userDocRef.path,
             operation: 'create',
@@ -170,7 +169,6 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         };
         
         setDoc(userDocRef, userData).catch((error) => {
-          console.error("Error creating user document on Google sign-in:", error);
           const permissionError = new FirestorePermissionError({
             path: userDocRef.path,
             operation: 'create',
@@ -202,12 +200,9 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 
   return (
     <Card className="w-full max-w-md bg-card/20 backdrop-blur-md border border-primary/30 shadow-2xl shadow-primary/10">
-        <CardHeader className="text-center space-y-4">
-            <h1 className="text-2xl font-bold">Samir HiDev's</h1>
-            <div>
-              <CardTitle className="text-2xl">{title}</CardTitle>
-              <CardDescription>{description}</CardDescription>
-            </div>
+        <CardHeader className="text-center">
+            <CardTitle className="text-2xl">{title}</CardTitle>
+            <CardDescription>{description}</CardDescription>
         </CardHeader>
         <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">

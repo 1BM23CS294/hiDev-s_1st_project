@@ -33,7 +33,7 @@ export default function RootLayout({
         <FirebaseClientProvider>
             <Image
                 src="https://storage.googleapis.com/aif-stg-testing-images/background.png"
-                alt="AI brain analyzing resume and job market data"
+                alt="Intelligent Resume Analyzer background"
                 fill
                 className="object-cover -z-10 filter brightness-75"
             />

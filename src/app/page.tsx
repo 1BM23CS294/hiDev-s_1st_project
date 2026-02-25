@@ -196,7 +196,7 @@ export default function Home() {
                  <Card className="bg-card/20 backdrop-blur-sm border-primary/30">
                     <CardHeader className="bg-black/30 rounded-t-lg">
                         <div className="flex items-center justify-between">
-                            <h1 className="text-xl font-bold">Samir HiDev's</h1>
+                            <h1 className="text-xl font-bold">Intelligent Resume Analyzer</h1>
                              <div className="flex items-center gap-2">
                                 <Avatar className="h-8 w-8">
                                     <AvatarImage src={user.photoURL ?? undefined} />
