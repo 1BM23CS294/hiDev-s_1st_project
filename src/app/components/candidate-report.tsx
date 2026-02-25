@@ -40,7 +40,7 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
 
   return (
     <div className="space-y-6">
-      <Card className='bg-card/30 backdrop-blur-lg border-border/20'>
+      <Card>
         <CardHeader>
           <div className="flex flex-wrap justify-between items-start gap-4">
               <div>
