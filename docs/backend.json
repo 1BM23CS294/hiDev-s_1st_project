@@ -153,41 +153,21 @@
           "type": "string",
           "description": "Reference to User. (Relationship: User 1:N AnalysisReport)"
         },
-        "resumeId": {
-          "type": "string",
-          "description": "Reference to Resume. (Relationship: Resume 1:N AnalysisReport)"
-        },
-        "jobDescriptionId": {
-          "type": "string",
-          "description": "Reference to JobDescription. (Relationship: JobDescription 1:N AnalysisReport)"
-        },
-        "analysisDate": {
+        "createdAt": {
           "type": "string",
           "description": "Timestamp when the analysis report was generated.",
           "format": "date-time"
         },
-        "matchScore": {
-          "type": "number",
-          "description": "The calculated match score (0-100) indicating how well the resume aligns with the job description."
-        },
-        "recommendationsJson": {
+        "reportJson": {
           "type": "string",
-          "description": "A JSON string containing AI-generated hiring recommendations and insights based on the analysis."
-        },
-        "detailedAnalysisJson": {
-          "type": "string",
-          "description": "A JSON string containing a detailed breakdown of the matching process, such as skill-by-skill comparison, experience relevance, and other contributing factors."
+          "description": "A JSON string containing the complete AnalyzedCandidate object, including candidate details, analysis, and recommendations."
         }
       },
       "required": [
         "id",
         "userId",
-        "resumeId",
-        "jobDescriptionId",
-        "analysisDate",
-        "matchScore",
-        "recommendationsJson",
-        "detailedAnalysisJson"
+        "createdAt",
+        "reportJson"
       ]
     }
   },

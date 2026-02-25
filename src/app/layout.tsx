@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
@@ -31,12 +30,6 @@ export default function RootLayout({
       </head>
       <body className={cn('font-body antialiased', 'dark')}>
         <FirebaseClientProvider>
-            <Image
-                src="https://storage.googleapis.com/aif-stg-testing-images/resume-analysis.png"
-                alt="Resume analysis background"
-                fill
-                className="object-cover -z-10 filter brightness-50"
-            />
           {children}
           <Toaster />
         </FirebaseClientProvider>

@@ -1,8 +1,8 @@
 'use client';
 
-import { useActionState, useState, useEffect, useRef } from 'react';
+import { useActionState, useState, useEffect, useRef, useMemo } from 'react';
 import { useFormStatus } from 'react-dom';
-import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, ScanText, Languages } from 'lucide-react';
+import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, ScanText, Languages, Bot } from 'lucide-react';
 import { analyzeResume } from '@/app/actions';
 import type { AnalyzedCandidate } from '@/lib/types';
 import { Label } from '@/components/ui/label';
@@ -17,10 +17,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth, useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { redirect } from 'next/navigation';
 import { PageLoader } from '@/components/ui/page-loader';
 import { signOut } from 'firebase/auth';
+import { collection, query, orderBy, addDoc, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { FeedbackCard } from './components/feedback-card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel';
@@ -72,7 +73,6 @@ const getScoreColor = (score: number) => {
 
 export default function Home() {
   const [state, formAction] = useActionState(analyzeResume, initialState);
-  const [candidates, setCandidates] = useState<AnalyzedCandidate[]>([]);
   const [selectedCandidate, setSelectedCandidate] = useState<AnalyzedCandidate | null>(null);
   const [fileName, setFileName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,6 +82,7 @@ export default function Home() {
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
+  const firestore = useFirestore();
   const [api, setApi] = useState<CarouselApi>()
   const autoplayPlugin = useRef(
     Autoplay({
@@ -89,7 +90,22 @@ export default function Home() {
         stopOnInteraction: true,
     })
   );
-  
+
+  const reportsQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return query(collection(firestore, `users/${user.uid}/analysisReports`), orderBy('createdAt', 'desc'));
+  }, [user, firestore]);
+
+  const { data: savedReports, isLoading: isLoadingReports } = useCollection(reportsQuery);
+
+  const candidates = useMemo((): (AnalyzedCandidate & { firestoreId: string })[] => {
+    if (!savedReports) return [];
+    return savedReports.map(report => {
+      const data = JSON.parse(report.reportJson);
+      return { ...data, firestoreId: report.id };
+    });
+  }, [savedReports]);
+
   useEffect(() => {
     if (!isUserLoading && !user) {
       redirect('/login');
@@ -97,35 +113,17 @@ export default function Home() {
   }, [user, isUserLoading]);
 
   useEffect(() => {
-    if (user) {
-      const savedCandidates = localStorage.getItem(`analyzedCandidates_${user.uid}`);
-      if (savedCandidates) {
-        try {
-          const parsedCandidates = JSON.parse(savedCandidates);
-          if (Array.isArray(parsedCandidates)) {
-            setCandidates(parsedCandidates);
-          }
-        } catch (error) {
-          console.error("Failed to parse candidates from localStorage:", error);
-        }
-      } else {
-        setCandidates([]);
-      }
-      setSelectedCandidate(null);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem(`analyzedCandidates_${user.uid}`, JSON.stringify(candidates));
-    }
-  }, [candidates, user]);
-
-  useEffect(() => {
     if (isSubmitting) {
-        if (state.success && state.data) {
+        if (state.success && state.data && user) {
           const newCandidate = state.data;
-          setCandidates(prev => [newCandidate, ...prev]);
+          
+          const newReport = {
+            userId: user.uid,
+            createdAt: serverTimestamp(),
+            reportJson: JSON.stringify(newCandidate),
+          };
+          addDoc(collection(firestore, 'users', user.uid, 'analysisReports'), newReport);
+
           setSelectedCandidate(newCandidate);
           setIsAutoplayActive(true);
           toast({
@@ -145,7 +143,7 @@ export default function Home() {
         }
         setIsSubmitting(false);
     }
-  }, [state, toast, isSubmitting, api]);
+  }, [state, toast, isSubmitting, api, user, firestore]);
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -170,7 +168,12 @@ export default function Home() {
   };
   
   const clearHistory = () => {
-    setCandidates([]);
+    if(!user || !firestore) return;
+
+    candidates.forEach(c => {
+        deleteDoc(doc(firestore, `users/${user.uid}/analysisReports`, c.firestoreId));
+    });
+    
     setSelectedCandidate(null);
     toast({
         title: "History Cleared",
@@ -194,7 +197,7 @@ export default function Home() {
       return <AnalysisLoading />;
     }
     if (selectedCandidate) {
-      return <ScrollArea className="h-full pr-4"><CandidateReport data={selectedCandidate} /></ScrollArea>;
+      return <CandidateReport data={selectedCandidate} />;
     }
     return <WelcomeSplash />;
   };
@@ -213,7 +216,9 @@ export default function Home() {
             <CarouselContent>
                 <CarouselItem className="lg:basis-1/2">
                     <div className="p-1 h-full">
-                        {renderContent()}
+                        <ScrollArea className="h-[730px] pr-4">
+                            {renderContent()}
+                        </ScrollArea>
                     </div>
                 </CarouselItem>
                 <CarouselItem className="lg:basis-1/2">
@@ -283,7 +288,7 @@ export default function Home() {
                             </CardHeader>
                             <CardContent className="w-full">
                                 <ScrollArea className="h-[620px] pr-4">
-                                {candidates.length > 0 ? (
+                                {isLoadingReports ? <div className='h-full flex items-center justify-center'><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : candidates.length > 0 ? (
                                     <ul className="space-y-2">
                                         {candidates.map((c) => (
                                         <li key={c.id}>
@@ -294,7 +299,7 @@ export default function Home() {
                                                     selectedCandidate?.id === c.id ? "bg-primary/90 text-primary-foreground border-primary" : "hover:bg-muted/50 border-border"
                                                 )}>
                                                 <div className="p-2 bg-muted rounded-md">
-                                                <ScanText className={cn("w-5 h-5", selectedCandidate?.id === c.id ? "text-primary-foreground" : "text-primary")} />
+                                                <Bot className={cn("w-5 h-5", selectedCandidate?.id === c.id ? "text-primary-foreground" : "text-primary")} />
                                                 </div>
                                                 <div className="flex-1 overflow-hidden">
                                                     <p className="font-semibold truncate">{c.candidate.name}</p>

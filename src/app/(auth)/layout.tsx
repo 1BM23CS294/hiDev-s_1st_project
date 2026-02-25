@@ -1,4 +1,3 @@
-import Image from "next/image";
 
 export default function AuthLayout({
   children,
@@ -6,13 +5,7 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <main className="relative min-h-svh flex items-center justify-center p-4">
-        <Image
-            src="https://storage.googleapis.com/aif-stg-testing-images/resume-analysis.png"
-            alt="Resume analysis background"
-            fill
-            className="object-cover -z-10 filter brightness-50"
-        />
+    <main className="relative min-h-svh flex items-center justify-center p-4 bg-black/30">
         {children}
     </main>
   );
