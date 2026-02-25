@@ -182,7 +182,7 @@ export default function Home() {
       </Sidebar>
       <SidebarInset>
         <Header />
-        <ScrollArea className="h-[calc(100vh-4rem)] bg-muted/20">
+        <ScrollArea className="h-[calc(100vh-4rem)]">
             <div className="p-6 lg:p-8">
             {renderContent()}
             </div>
