@@ -23,6 +23,7 @@ import { PageLoader } from '@/components/ui/page-loader';
 import { signOut } from 'firebase/auth';
 import { Logo } from '@/components/logo';
 import { Badge } from '@/components/ui/badge';
+import { FeedbackCard } from './components/feedback-card';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -137,12 +138,12 @@ export default function Home() {
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setSelectedCandidate(null);
     const formData = new FormData(e.currentTarget);
     const jobDesc = formData.get('jobDescription') as string;
     const resume = formData.get('resumeFile') as File;
 
     if (!jobDesc || !resume || resume.size === 0) {
-       // Handle client-side validation failure
         if (!jobDesc) {
             toast({ title: "Job Description is required.", variant: "destructive" });
         }
@@ -153,7 +154,6 @@ export default function Home() {
     }
 
     setIsSubmitting(true);
-    setSelectedCandidate(null); 
     formAction(formData);
   };
   
@@ -189,7 +189,7 @@ export default function Home() {
      <div className="min-h-svh w-full p-4 md:p-6 lg:p-8">
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
             <div className="lg:col-span-1 space-y-8">
-                 <Card className="bg-card/20 backdrop-blur-md border-primary/30">
+                 <Card className="bg-card/20 backdrop-blur-sm border-primary/30">
                     <CardHeader className="bg-black/30 rounded-t-lg">
                         <div className="flex items-center justify-between">
                             <Logo />
@@ -238,7 +238,7 @@ export default function Home() {
                         </form>
                     </CardContent>
                  </Card>
-                 <Card className="bg-card/20 backdrop-blur-md border-primary/30">
+                 <Card className="bg-card/20 backdrop-blur-sm border-primary/30">
                     <CardHeader className='flex-row items-center justify-between pb-2'>
                         <CardTitle className="flex items-center gap-2 text-lg font-semibold"><Users size={18} /> Analysis History</CardTitle>
                         {candidates.length > 0 && (
@@ -281,6 +281,7 @@ export default function Home() {
                         </ScrollArea>
                     </CardContent>
                  </Card>
+                 <FeedbackCard />
             </div>
             <main className="lg:col-span-2">
                 {renderContent()}
