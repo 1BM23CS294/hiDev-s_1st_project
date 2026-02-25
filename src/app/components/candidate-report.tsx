@@ -6,11 +6,13 @@ import {
   ShieldAlert,
   Award,
   BookCheck,
+  BrainCircuit,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+import { CircularProgress } from './circular-progress';
 
-function PerformanceMetric({ label, score, icon: Icon }: { label: string, score: number, icon: React.ElementType }) {
+function PerformanceMetric({ label, score, icon: Icon, explanation }: { label: string, score: number, icon: React.ElementType, explanation: string }) {
     return (
         <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -21,6 +23,7 @@ function PerformanceMetric({ label, score, icon: Icon }: { label: string, score:
                 <p className="text-sm font-semibold">{score}/10</p>
             </div>
             <Progress value={score * 10} indicatorClassName={getScoreColor(score, true)} />
+            <p className='text-xs text-muted-foreground'>{explanation}</p>
         </div>
     )
 }
@@ -37,35 +40,37 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
 
   return (
     <div className="space-y-6">
-      <Card className='bg-card/50'>
+      <Card className='bg-card/30 backdrop-blur-lg border-border/20'>
         <CardHeader>
           <div className="flex flex-wrap justify-between items-start gap-4">
               <div>
-                  <CardTitle className="text-xl font-bold sm:text-2xl">{candidate.name}</CardTitle>
+                  <CardTitle className="text-2xl font-bold sm:text-3xl">{candidate.name}</CardTitle>
                   <CardDescription>Analysis based on file: {data.fileName}</CardDescription>
               </div>
               <Badge variant="outline" className='text-sm border-primary/50 text-primary'>New Analysis</Badge>
           </div>
         </CardHeader>
-        <CardContent className='space-y-6'>
-            <Card className='bg-card/30'>
+        <CardContent className='space-y-8'>
+            <Card className='bg-card/50'>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-primary"><Award size={20} /> Overall Score</CardTitle>
+                    <CardTitle className="flex items-center gap-2 text-primary text-xl"><Award size={22} /> Overall Score</CardTitle>
                 </CardHeader>
-                <CardContent className='text-center flex flex-col items-center justify-center p-8 space-y-2'>
-                    <h2 className={cn("text-6xl font-bold tracking-tighter sm:text-7xl", getScoreColor(analysis.overallScore))}>
-                        {analysis.overallScore.toFixed(1)}<span className='text-3xl text-foreground/50 sm:text-4xl'>/10</span>
-                    </h2>
-                    <Badge variant='secondary' className={cn("text-base", getScoreColor(analysis.overallScore))}>
-                        {analysis.rating}
-                    </Badge>
-                    <p className="text-sm text-foreground/60 max-w-md mx-auto pt-2 sm:text-base">{analysis.explanation}</p>
-                    <Progress value={analysis.overallScore * 10} className='max-w-md mt-2 h-3' indicatorClassName={getScoreColor(analysis.overallScore, true)} />
+                <CardContent className='flex flex-col md:flex-row items-center justify-center gap-8 text-center p-8'>
+                    <CircularProgress value={analysis.overallScore * 10} />
+                    <div className='max-w-md text-left space-y-2'>
+                        <h3 className='text-xl font-bold text-foreground'>AI-Powered Analysis</h3>
+                        <p className="text-base text-foreground/80">{analysis.explanation}</p>
+
+                        <div className='pt-4'>
+                             <h4 className='font-semibold text-foreground flex items-center gap-2'><BrainCircuit size={16} /> Overall Recommendation</h4>
+                             <p className='text-sm text-foreground/70'>{recommendations.overallRecommendation}</p>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
             
             <div className="grid md:grid-cols-2 gap-6">
-                <Card className='bg-card/30'>
+                <Card className='bg-card/50'>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-green-400"><CheckCircle2 size={20} /> Top Strengths</CardTitle>
                     </CardHeader>
@@ -75,7 +80,7 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                         </ul>
                     </CardContent>
                 </Card>
-                 <Card className='bg-card/30'>
+                 <Card className='bg-card/50'>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-amber-400"><ShieldAlert size={20} /> Areas for Improvement</CardTitle>
                     </CardHeader>
@@ -87,16 +92,16 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                 </Card>
             </div>
 
-            <Card className='bg-card/30'>
+            <Card className='bg-card/50'>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-primary"><BookCheck size={20} /> Performance Metrics</CardTitle>
                 </CardHeader>
                 <CardContent className='space-y-6'>
-                   <PerformanceMetric label="Formatting" score={performanceMetrics.formatting.score} icon={Award} />
-                   <PerformanceMetric label="Content Quality" score={performanceMetrics.contentQuality.score} icon={Award} />
-                   <PerformanceMetric label="ATS Compatibility" score={performanceMetrics.atsCompatibility.score} icon={Award} />
-                   <PerformanceMetric label="Keyword Usage" score={performanceMetrics.keywordUsage.score} icon={Award} />
-                   <PerformanceMetric label="Quantified Results" score={performanceMetrics.quantifiedResults.score} icon={Award} />
+                   <PerformanceMetric label="Formatting" score={performanceMetrics.formatting.score} explanation={performanceMetrics.formatting.explanation} icon={Award} />
+                   <PerformanceMetric label="Content Quality" score={performanceMetrics.contentQuality.score} explanation={performanceMetrics.contentQuality.explanation} icon={Award} />
+                   <PerformanceMetric label="ATS Compatibility" score={performanceMetrics.atsCompatibility.score} explanation={performanceMetrics.atsCompatibility.explanation} icon={Award} />
+                   <PerformanceMetric label="Keyword Usage" score={performanceMetrics.keywordUsage.score} explanation={performanceMetrics.keywordUsage.explanation} icon={Award} />
+                   <PerformanceMetric label="Quantified Results" score={performanceMetrics.quantifiedResults.score} explanation={performanceMetrics.quantifiedResults.explanation} icon={Award} />
                 </CardContent>
             </Card>
 

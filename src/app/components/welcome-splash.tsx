@@ -4,7 +4,7 @@ import { ScanText } from "lucide-react";
 
 export function WelcomeSplash() {
   return (
-     <Card className="bg-card/50 h-full flex flex-col items-center justify-center text-center min-h-[calc(100vh-10rem)] p-8">
+     <Card className="bg-card/30 backdrop-blur-lg border-border/20 h-full flex flex-col items-center justify-center text-center min-h-[calc(100vh-10rem)] p-8">
         <CardHeader>
           <div className="p-4 bg-primary/10 rounded-full mx-auto w-fit">
             <ScanText className="w-10 h-10 text-primary" />
