@@ -23,6 +23,7 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { CircularProgress } from './components/circular-progress';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 
 function SubmitButton() {
@@ -42,7 +43,6 @@ function SubmitButton() {
   );
 }
 
-
 const initialState: {
   success: boolean;
   message: string;
@@ -52,6 +52,18 @@ const initialState: {
   success: false,
   message: '',
 };
+
+function getInitials(name: string) {
+  if (!name) return '??';
+  return name
+    .split(' ')
+    .map(n => n[0])
+    .filter(c => /[a-zA-Z]/.test(c))
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+}
+
 
 export default function Home() {
   const [state, formAction] = useActionState(analyzeResume, initialState);
@@ -86,7 +98,6 @@ export default function Home() {
   }, [state, toast]);
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    // Check if form is valid before setting loading state
     const formData = new FormData(e.currentTarget);
     const jobDesc = formData.get('jobDescription') as string;
     const resume = formData.get('resumeFile') as File;
@@ -94,7 +105,6 @@ export default function Home() {
       setIsLoading(true);
       setSelectedCandidate(null);
     }
-    // The actual submission is handled by the form action
   };
 
   const renderContent = () => {
@@ -158,12 +168,17 @@ export default function Home() {
                     <ul className="space-y-2">
                         {candidates.map((c) => (
                         <li key={c.id}>
-                            <button 
-                                onClick={() => setSelectedCandidate(c)} 
+                            <button
+                                onClick={() => setSelectedCandidate(c)}
                                 className={cn(
-                                    "w-full text-left p-3 rounded-lg transition-colors flex items-center justify-between gap-4", 
+                                    "w-full text-left p-2 rounded-lg transition-colors flex items-center gap-3 group",
                                     selectedCandidate?.id === c.id ? "bg-primary text-primary-foreground" : "hover:bg-accent"
                                 )}>
+                                <Avatar className="h-9 w-9 border-2 border-transparent group-hover:border-primary/20">
+                                     <AvatarFallback className={cn("text-sm", selectedCandidate?.id === c.id ? "bg-primary-foreground text-primary" : "bg-muted")}>
+                                        {getInitials(c.candidate.name)}
+                                    </AvatarFallback>
+                                </Avatar>
                                 <div className="flex-1 overflow-hidden">
                                     <p className="font-semibold truncate">{c.candidate.name}</p>
                                     <p className={cn("text-xs truncate", selectedCandidate?.id === c.id ? "text-primary-foreground/80" : "text-muted-foreground")}>{c.fileName}</p>
@@ -183,7 +198,7 @@ export default function Home() {
       <SidebarInset>
         <Header />
         <ScrollArea className="h-[calc(100vh-4rem)]">
-            <div className="p-6 lg:p-8">
+            <div className="p-6 lg:p-8 bg-background-inset">
             {renderContent()}
             </div>
         </ScrollArea>
