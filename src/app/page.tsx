@@ -76,7 +76,7 @@ export default function Home() {
   const [selectedCandidate, setSelectedCandidate] = useState<AnalyzedCandidate | null>(null);
   const [fileName, setFileName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isAutoplayActive, setIsAutoplayActive] = useState(false);
+  const [isAutoplayActive, setIsAutoplayActive] = useState(true);
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -125,7 +125,6 @@ export default function Home() {
           addDoc(collection(firestore, 'users', user.uid, 'analysisReports'), newReport);
 
           setSelectedCandidate(newCandidate);
-          setIsAutoplayActive(true);
           toast({
             title: "Analysis Complete",
             description: `${newCandidate.candidate.name}'s resume has been analyzed.`,
@@ -220,9 +219,13 @@ export default function Home() {
                 <CarouselItem>
                    <div className="p-1 h-full grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div className="h-full">
-                            <ScrollArea className="h-full pr-4">
-                                {renderContent()}
-                            </ScrollArea>
+                            <Card className="h-full bg-card/20 border-primary/30 flex flex-col">
+                                <CardHeader className="flex-grow-0">
+                                <ScrollArea className="h-full pr-4">
+                                    {renderContent()}
+                                </ScrollArea>
+                                </CardHeader>
+                            </Card>
                         </div>
                         <div className="h-full">
                             <Card className="h-full bg-card/20 border-primary/30 flex flex-col">
