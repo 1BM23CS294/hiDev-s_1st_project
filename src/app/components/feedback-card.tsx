@@ -8,7 +8,7 @@ import { Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
-export function FeedbackCard() {
+export function FeedbackCard({ className }: { className?: string }) {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comments, setComments] = useState('');
@@ -36,14 +36,14 @@ export function FeedbackCard() {
   };
 
   return (
-    <Card className="bg-card/20 border-primary/30">
+    <Card className={cn("bg-card/20 border-primary/30 flex flex-col", className)}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg font-semibold">
           <Star size={18} /> Website Feedback
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <CardContent className="flex flex-col flex-grow">
+        <form onSubmit={handleSubmit} className="space-y-4 flex flex-col flex-grow">
           <div className="space-y-2">
             <label className="text-sm font-medium text-muted-foreground">Your Rating</label>
             <div className="flex items-center gap-1">
@@ -63,14 +63,14 @@ export function FeedbackCard() {
               ))}
             </div>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 flex flex-col flex-grow">
             <label htmlFor="feedback-comments" className="text-sm font-medium text-muted-foreground">Additional Comments (Optional)</label>
             <Textarea
               id="feedback-comments"
               placeholder="What could we improve?"
               value={comments}
               onChange={(e) => setComments(e.target.value)}
-              className="min-h-[100px] bg-background/50 border-border/50"
+              className="min-h-[100px] bg-background/50 border-border/50 flex-grow"
             />
           </div>
           <Button type="submit" className="w-full">Submit Feedback</Button>
