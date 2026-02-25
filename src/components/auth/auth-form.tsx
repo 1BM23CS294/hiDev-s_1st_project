@@ -199,13 +199,10 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   }
 
   return (
-    <Card className="w-full max-w-md bg-card/20 backdrop-blur-md border border-primary/30 shadow-2xl shadow-primary/10">
-        <CardHeader className="text-center space-y-4">
-            <h1 className="text-2xl font-bold">Samir HiDev's</h1>
-            <div>
-              <CardTitle className="text-2xl">{title}</CardTitle>
-              <CardDescription>{description}</CardDescription>
-            </div>
+    <Card className="w-full max-w-md bg-card/20 border border-primary/30 shadow-2xl shadow-primary/10">
+        <CardHeader className="text-center">
+            <CardTitle className="text-2xl">{title}</CardTitle>
+            <CardDescription>{description}</CardDescription>
         </CardHeader>
         <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">

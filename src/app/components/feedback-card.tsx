@@ -36,7 +36,7 @@ export function FeedbackCard() {
   };
 
   return (
-    <Card className="bg-card/20 backdrop-blur-sm border-primary/30">
+    <Card className="bg-card/20 border-primary/30">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg font-semibold">
           <Star size={18} /> Website Feedback

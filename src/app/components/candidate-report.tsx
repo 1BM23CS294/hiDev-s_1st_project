@@ -47,7 +47,7 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
 
   return (
     <div className="space-y-6">
-      <Card className="bg-card/20 backdrop-blur-md border-primary/30 p-2 sm:p-4">
+      <Card className="bg-card/20 border-primary/30 p-2 sm:p-4">
         <CardHeader>
           <div className="flex flex-wrap justify-between items-start gap-4">
               <div>
@@ -74,7 +74,7 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                 <TabsTrigger value="details">Resume Details</TabsTrigger>
               </TabsList>
               <TabsContent value="overview" className="mt-6">
-                <Card className='bg-background/30 backdrop-blur-sm border border-primary/20'>
+                <Card className='bg-background/30 border border-primary/20'>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-primary text-xl"><Award size={22} /> Overall Score & Recommendation</CardTitle>
                     </CardHeader>
@@ -94,7 +94,7 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                 </Card>
               </TabsContent>
               <TabsContent value="performance" className="mt-6">
-                <Card className='bg-background/30 backdrop-blur-sm border border-primary/20'>
+                <Card className='bg-background/30 border border-primary/20'>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-primary"><BookCheck size={20} /> Performance Metrics</CardTitle>
                     </CardHeader>
@@ -109,7 +109,7 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
               </TabsContent>
               <TabsContent value="recommendations" className="mt-6">
                 <div className="grid md:grid-cols-2 gap-6">
-                    <Card className='bg-background/30 backdrop-blur-sm border border-primary/20'>
+                    <Card className='bg-background/30 border border-primary/20'>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-green-400"><CheckCircle2 size={20} /> Top Strengths</CardTitle>
                         </CardHeader>
@@ -119,7 +119,7 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                             </ul>
                         </CardContent>
                     </Card>
-                    <Card className='bg-background/30 backdrop-blur-sm border border-primary/20'>
+                    <Card className='bg-background/30 border border-primary/20'>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-amber-400"><ShieldAlert size={20} /> Areas for Improvement</CardTitle>
                         </CardHeader>
@@ -129,7 +129,7 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                             </ul>
                         </CardContent>
                     </Card>
-                    <Card className='bg-background/30 backdrop-blur-sm md:col-span-2 border border-primary/20'>
+                    <Card className='bg-background/30 md:col-span-2 border border-primary/20'>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-red-400"><ListMinus size={20} /> Skills Gap</CardTitle>
                         </CardHeader>
@@ -142,7 +142,7 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                 </div>
               </TabsContent>
               <TabsContent value="details" className="mt-6">
-                 <Card className='bg-background/30 backdrop-blur-sm border border-primary/20'>
+                 <Card className='bg-background/30 border border-primary/20'>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-primary"><User size={20} /> Extracted Resume Details</CardTitle>
                     </CardHeader>

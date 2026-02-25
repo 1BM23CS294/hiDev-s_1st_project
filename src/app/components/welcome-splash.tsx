@@ -4,7 +4,7 @@ import { Bot } from "lucide-react";
 
 export function WelcomeSplash() {
   return (
-     <Card className="h-full flex flex-col items-center justify-center text-center min-h-[calc(100vh-10rem)] p-8 bg-card/20 backdrop-blur-md border-primary/30">
+     <Card className="h-full flex flex-col items-center justify-center text-center min-h-[calc(100vh-10rem)] p-8 bg-card/20 border-primary/30">
         <CardHeader>
           <div className="p-4 bg-primary/10 rounded-full mx-auto w-fit animate-pulse">
             <Bot className="w-12 h-12 text-primary" />

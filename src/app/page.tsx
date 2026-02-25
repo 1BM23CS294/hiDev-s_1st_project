@@ -223,7 +223,7 @@ export default function Home() {
                 </CarouselItem>
                 <CarouselItem className="lg:basis-1/2">
                      <div className="p-1 h-full">
-                        <Card className="h-full bg-card/20 backdrop-blur-sm border-primary/30">
+                        <Card className="h-full bg-card/20 border-primary/30">
                             <CardHeader className="bg-black/30 rounded-t-lg">
                                 <div className="flex items-center justify-between">
                                     <h1 className="text-xl font-bold">Intelligent Resume Analyzer</h1>
@@ -276,7 +276,7 @@ export default function Home() {
                 </CarouselItem>
                 <CarouselItem className="lg:basis-1/2">
                     <div className="p-1 h-full">
-                        <Card className="h-full bg-card/20 backdrop-blur-md border-primary/30">
+                        <Card className="h-full bg-card/20 border-primary/30">
                             <CardHeader className='flex-row items-center justify-between pb-2 w-full'>
                                 <CardTitle className="flex items-center gap-2 text-lg font-semibold"><Users size={18} /> Analysis History</CardTitle>
                                 {candidates.length > 0 && (
