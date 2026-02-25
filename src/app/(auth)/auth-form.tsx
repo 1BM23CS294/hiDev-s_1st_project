@@ -17,13 +17,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Bot } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../ui/card';
 import { GoogleIcon } from './google-icon';
 import { cn } from '@/lib/utils';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
+import Image from 'next/image';
 
 type AuthMode = 'login' | 'signup';
 
@@ -31,12 +32,10 @@ const content = {
   login: {
     title: 'Intelligent Resume Analyzer',
     description: 'Welcome back! Please sign in to continue.',
-    icon: Bot,
   },
   signup: {
     title: 'Intelligent Resume Analyzer',
     description: 'Create an account to get started.',
-    icon: Bot,
   },
 };
 
@@ -55,7 +54,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const router = useRouter();
   const { toast } = useToast();
   
-  const { title, description, icon: Icon } = content[mode];
+  const { title, description } = content[mode];
 
 
   useEffect(() => {
@@ -206,7 +205,14 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   return (
     <Card className="w-full max-w-md bg-card/20 backdrop-blur-md border border-primary/30 shadow-2xl shadow-primary/10">
         <CardHeader className="text-center space-y-4">
-            <Icon className="h-10 w-10 text-primary mx-auto" />
+            <Image
+              src="https://storage.googleapis.com/aif-stg-testing-images/samir-hidevs-logo.png"
+              alt="Samir HiDev's Logo"
+              width={180}
+              height={60}
+              className="object-contain mx-auto"
+              priority
+            />
             <div>
               <CardTitle className="text-2xl">{title}</CardTitle>
               <CardDescription>{description}</CardDescription>

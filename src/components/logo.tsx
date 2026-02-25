@@ -1,15 +1,19 @@
 
 import { cn } from '@/lib/utils';
-import { ScanText } from 'lucide-react';
+import Image from 'next/image';
 
 export function Logo({ size = 'default' }: { size?: 'default' | 'lg' }) {
   const isLarge = size === 'lg';
   return (
-    <div className={cn("flex items-center gap-2", isLarge && "flex-col gap-1")}>
-      <ScanText className={cn("text-primary", isLarge ? "h-8 w-8" : "h-6 w-6")} />
-      <h1 className={cn("font-bold", isLarge ? "text-2xl" : "text-xl")}>
-        Intelligent Resume Analyzer
-      </h1>
+    <div className={cn("flex items-center", isLarge && "flex-col gap-1")}>
+       <Image
+        src="https://storage.googleapis.com/aif-stg-testing-images/samir-hidevs-logo.png"
+        alt="Samir HiDev's Logo"
+        width={isLarge ? 160 : 140}
+        height={isLarge ? 53 : 47}
+        className="object-contain"
+        priority
+      />
     </div>
   );
 }
