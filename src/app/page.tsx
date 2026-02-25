@@ -194,7 +194,7 @@ export default function Home() {
       return <AnalysisLoading />;
     }
     if (selectedCandidate) {
-      return <CandidateReport data={selectedCandidate} />;
+      return <ScrollArea className="h-full pr-4"><CandidateReport data={selectedCandidate} /></ScrollArea>;
     }
     return <WelcomeSplash />;
   };
@@ -208,7 +208,7 @@ export default function Home() {
         <Carousel
             setApi={setApi}
             plugins={isAutoplayActive ? [autoplayPlugin.current] : []}
-            className="w-full max-w-5xl"
+            className="w-full max-w-5xl h-[740px]"
         >
             <CarouselContent>
                 <CarouselItem className="lg:basis-1/2">
@@ -282,7 +282,7 @@ export default function Home() {
                                 )}
                             </CardHeader>
                             <CardContent className="w-full">
-                                <ScrollArea className="h-[500px] pr-4">
+                                <ScrollArea className="h-[620px] pr-4">
                                 {candidates.length > 0 ? (
                                     <ul className="space-y-2">
                                         {candidates.map((c) => (

@@ -8,8 +8,8 @@ export default function AuthLayout({
   return (
     <main className="relative min-h-svh flex items-center justify-center p-4">
         <Image
-            src="https://storage.googleapis.com/aif-stg-testing-images/background.png"
-            alt="Intelligent Resume Analyzer background"
+            src="https://storage.googleapis.com/aif-stg-testing-images/robotics-background.png"
+            alt="Robotics background"
             fill
             className="object-cover -z-10 filter blur-sm brightness-50"
         />
