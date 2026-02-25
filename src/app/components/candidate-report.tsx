@@ -21,6 +21,7 @@ import {
   Target,
   TrendingDown,
   TrendingUp,
+  Lightbulb,
 } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { CircularProgress } from './circular-progress';
@@ -138,7 +139,7 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
             <CardContent>
               <Accordion type="single" collapsible defaultValue="item-1">
                 <AccordionItem value="item-1">
-                  <AccordionTrigger><div className='flex items-center gap-2'><TrendingUp className="text-emerald-500"/> Strengths</div></AccordionTrigger>
+                  <AccordionTrigger><div className='flex items-center gap-2'><TrendingUp className="text-green-500"/> Strengths</div></AccordionTrigger>
                   <AccordionContent>
                     <ul className="list-disc pl-5 space-y-1 text-sm">
                       {recommendations.strengths.map((s, i) => <li key={i}>{s}</li>)}
@@ -146,7 +147,7 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="item-2">
-                  <AccordionTrigger><div className='flex items-center gap-2'><TrendingDown className="text-rose-500"/> Weaknesses</div></AccordionTrigger>
+                  <AccordionTrigger><div className='flex items-center gap-2'><TrendingDown className="text-destructive"/> Weaknesses</div></AccordionTrigger>
                   <AccordionContent>
                     <ul className="list-disc pl-5 space-y-1 text-sm">
                       {recommendations.weaknesses.map((w, i) => <li key={i}>{w}</li>)}
@@ -154,7 +155,7 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="item-3">
-                  <AccordionTrigger><div className='flex items-center gap-2'><HelpCircle className="text-sky-500"/> Interview Questions</div></AccordionTrigger>
+                  <AccordionTrigger><div className='flex items-center gap-2'><HelpCircle className="text-primary"/> Interview Questions</div></AccordionTrigger>
                   <AccordionContent>
                     <ul className="list-decimal pl-5 space-y-2 text-sm">
                       {recommendations.interviewQuestions.map((q, i) => <li key={i}>{q}</li>)}
