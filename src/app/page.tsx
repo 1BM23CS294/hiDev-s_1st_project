@@ -76,12 +76,19 @@ export default function Home() {
   const [selectedCandidate, setSelectedCandidate] = useState<AnalyzedCandidate | null>(null);
   const [fileName, setFileName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAutoplayActive, setIsAutoplayActive] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const [api, setApi] = useState<CarouselApi>()
+  const autoplayPlugin = useRef(
+    Autoplay({
+        delay: 5000,
+        stopOnInteraction: true,
+    })
+  );
   
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -120,6 +127,7 @@ export default function Home() {
           const newCandidate = state.data;
           setCandidates(prev => [newCandidate, ...prev]);
           setSelectedCandidate(newCandidate);
+          setIsAutoplayActive(true);
           toast({
             title: "Analysis Complete",
             description: `${newCandidate.candidate.name}'s resume has been analyzed.`,
@@ -199,12 +207,7 @@ export default function Home() {
      <div className="relative min-h-svh w-full flex items-center justify-center p-4 md:p-6 lg:p-8">
         <Carousel
             setApi={setApi}
-            plugins={[
-                Autoplay({
-                    delay: 5000,
-                    stopOnInteraction: true,
-                }),
-            ]}
+            plugins={isAutoplayActive ? [autoplayPlugin.current] : []}
             className="w-full max-w-5xl"
         >
             <CarouselContent>
