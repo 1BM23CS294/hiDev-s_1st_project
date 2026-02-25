@@ -8,8 +8,8 @@ export default function AuthLayout({
   return (
     <main className="relative min-h-svh flex items-center justify-center p-4">
         <Image
-            src="https://images.unsplash.com/photo-1620712943543-285f7267a89c?q=80&w=2070&auto=format=fit=crop"
-            alt="Abstract digital network background"
+            src="https://images.unsplash.com/photo-1550026593-de54974b486f?q=80&w=2070&auto=format&fit=crop"
+            alt="Abstract background with glowing UI elements"
             fill
             className="object-cover -z-10 filter blur-sm brightness-50"
         />
