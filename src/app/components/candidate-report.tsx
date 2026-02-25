@@ -1,33 +1,17 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import type { AnalyzedCandidate } from '@/lib/types';
 import {
-  Briefcase,
-  GraduationCap,
-  Sparkles,
   CheckCircle,
   XCircle,
   HelpCircle,
   Award,
 } from 'lucide-react';
-
-function getScoreColor(score: number) {
-  if (score >= 80) return 'text-green-400';
-  if (score >= 60) return 'text-yellow-400';
-  return 'text-red-400';
-}
-
-function getScoreBgColor(score: number) {
-    if (score >= 80) return 'bg-green-400/10';
-    if (score >= 60) return 'bg-yellow-400/10';
-    return 'bg-red-400/10';
-}
+import { CircularProgress } from './circular-progress';
 
 
 export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
   const { candidate, matchScore, recommendations } = data;
-  const scoreOutOf10 = (matchScore.matchScore / 10).toFixed(1);
 
   return (
     <div className="space-y-6">
@@ -42,18 +26,25 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
           </div>
         </CardHeader>
         <CardContent className='space-y-6'>
-            <Card className={`p-6 ${getScoreBgColor(matchScore.matchScore)}`}>
-                <div className='flex flex-wrap items-center justify-between gap-4'>
-                    <div>
-                        <h3 className="text-lg font-semibold text-foreground/80 flex items-center gap-2"><Award size={20}/> Overall Score</h3>
-                        <p className={`text-5xl font-bold ${getScoreColor(matchScore.matchScore)}`}>{scoreOutOf10}<span className='text-3xl text-foreground/50'>/10</span></p>
-                        <p className='text-sm font-medium text-foreground/80 mt-1'>{matchScore.matchScore >= 80 ? "Excellent" : matchScore.matchScore >= 60 ? "Good" : "Needs Improvement"}</p>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-primary"><Award size={20} /> Analysis Summary</CardTitle>
+                </CardHeader>
+                <CardContent className='grid md:grid-cols-3 gap-6 items-center'>
+                    <div className='md:col-span-1 flex justify-center'>
+                        <CircularProgress value={matchScore.matchScore} />
                     </div>
-                    <div className='w-full sm:w-auto mt-4 sm:mt-0'>
-                        <p className="text-sm text-foreground/60 mb-2">{matchScore.explanation}</p>
-                        <Progress value={matchScore.matchScore} className="h-2" indicatorClassName={getScoreColor(matchScore.matchScore).replace('text-', 'bg-')}/>
+                    <div className='md:col-span-2 space-y-4'>
+                        <div>
+                            <h3 className="text-lg font-semibold">Match Explanation</h3>
+                            <p className="text-sm text-foreground/80">{matchScore.explanation}</p>
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold">Overall Recommendation</h3>
+                            <p className="text-sm text-foreground/80">{recommendations.overallRecommendation}</p>
+                        </div>
                     </div>
-                </div>
+                </CardContent>
             </Card>
             
             <div className="grid md:grid-cols-2 gap-6">
