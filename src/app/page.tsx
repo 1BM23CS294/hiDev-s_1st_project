@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useEffect, useRef } from 'react';
 import { useFormStatus } from 'react-dom';
-import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, ScanText, Languages, Star } from 'lucide-react';
+import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, ScanText, Languages } from 'lucide-react';
 import { analyzeResume } from '@/app/actions';
 import type { AnalyzedCandidate } from '@/lib/types';
 import { Label } from '@/components/ui/label';
@@ -24,7 +24,6 @@ import { signOut } from 'firebase/auth';
 import { Logo } from '@/components/logo';
 import { Badge } from '@/components/ui/badge';
 import { FeedbackCard } from './components/feedback-card';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -81,7 +80,6 @@ export default function Home() {
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
-  const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -175,7 +173,6 @@ export default function Home() {
   
   const handleHistoryClick = (candidate: AnalyzedCandidate) => {
       setSelectedCandidate(candidate);
-      carouselApi?.scrollTo(0);
   };
 
 
@@ -195,8 +192,8 @@ export default function Home() {
 
   return (
      <div className="min-h-svh w-full p-4 md:p-6 lg:p-8">
-        <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
-            <div className="lg:col-span-1 space-y-8">
+        <div className='grid grid-cols-1 lg:grid-cols-3 gap-8 items-start'>
+            <aside className="lg:col-span-1 space-y-8 sticky top-8">
                  <Card className="bg-card/20 backdrop-blur-sm border-primary/30">
                     <CardHeader className="bg-black/30 rounded-t-lg">
                         <div className="flex items-center justify-between">
@@ -246,82 +243,56 @@ export default function Home() {
                         </form>
                     </CardContent>
                  </Card>
-            </div>
-            <main className="lg:col-span-2">
-                <Carousel className="w-full h-full" opts={{ loop: true }} setApi={setCarouselApi}>
-                    <CarouselContent>
-                        <CarouselItem>
-                            {renderContent()}
-                        </CarouselItem>
-                        <CarouselItem>
-                             <Card className="h-full flex flex-col items-center justify-center text-center min-h-[calc(100vh-10rem)] p-8 bg-card/20 backdrop-blur-md border-primary/30">
-                                <CardHeader>
-                                    <div className="p-4 bg-primary/10 rounded-full mx-auto w-fit">
-                                        <Star className="w-10 h-10 text-primary" />
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="w-full max-w-lg">
-                                    <CardTitle className="text-3xl md:text-4xl font-bold tracking-tighter mb-2">
-                                        Feedback & Ratings
-                                    </CardTitle>
-                                    <CardDescription className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto mb-8">
-                                        We value your feedback. Please let us know how we can improve.
-                                    </CardDescription>
-                                    <FeedbackCard />
-                                </CardContent>
-                            </Card>
-                        </CarouselItem>
-                         <CarouselItem>
-                             <Card className="h-full flex flex-col text-center min-h-[calc(100vh-10rem)] p-4 sm:p-8 bg-card/20 backdrop-blur-md border-primary/30">
-                                <CardHeader className='flex-row items-center justify-between pb-2 w-full'>
-                                    <CardTitle className="flex items-center gap-2 text-lg font-semibold"><Users size={18} /> Analysis History</CardTitle>
-                                    {candidates.length > 0 && (
-                                        <Button variant="ghost" size="icon" onClick={clearHistory} className="h-7 w-7 text-muted-foreground hover:text-destructive">
-                                            <Trash2 size={16}/>
-                                            <span className='sr-only'>Clear History</span>
-                                        </Button>
-                                    )}
-                                </CardHeader>
-                                <CardContent className="w-full flex-1 overflow-hidden">
-                                     <ScrollArea className="h-full pr-4">
-                                    {candidates.length > 0 ? (
-                                        <ul className="space-y-2">
-                                            {candidates.map((c) => (
-                                            <li key={c.id}>
-                                                <button
-                                                    onClick={() => handleHistoryClick(c)}
-                                                    className={cn(
-                                                        "w-full text-left p-3 rounded-lg transition-colors flex items-center gap-3 group border",
-                                                        selectedCandidate?.id === c.id ? "bg-primary/90 text-primary-foreground border-primary" : "hover:bg-muted/50 border-border"
-                                                    )}>
-                                                    <div className="p-2 bg-muted rounded-md">
-                                                       <ScanText className={cn("w-5 h-5", selectedCandidate?.id === c.id ? "text-primary-foreground" : "text-primary")} />
-                                                    </div>
-                                                    <div className="flex-1 overflow-hidden">
-                                                        <p className="font-semibold truncate">{c.candidate.name}</p>
-                                                        <p className={cn("text-xs truncate", selectedCandidate?.id === c.id ? "text-primary-foreground/80" : "text-muted-foreground")}>{c.fileName}</p>
-                                                    </div>
-                                                    <div className={cn("font-semibold text-lg", getScoreColor(c.analysis.overallScore))}>
-                                                        <span>{c.analysis.overallScore.toFixed(0)}</span>
-                                                        <span className="text-sm text-muted-foreground">/100</span>
-                                                    </div>
-                                                </button>
-                                            </li>
-                                            ))}
-                                        </ul>
-                                        ) : (
-                                        <div className='h-full flex items-center justify-center'>
-                                            <p className="text-sm text-muted-foreground text-center py-10">Your analyzed candidates will appear here.</p>
+
+                 <Card className="bg-card/20 backdrop-blur-md border-primary/30">
+                    <CardHeader className='flex-row items-center justify-between pb-2 w-full'>
+                        <CardTitle className="flex items-center gap-2 text-lg font-semibold"><Users size={18} /> Analysis History</CardTitle>
+                        {candidates.length > 0 && (
+                            <Button variant="ghost" size="icon" onClick={clearHistory} className="h-7 w-7 text-muted-foreground hover:text-destructive">
+                                <Trash2 size={16}/>
+                                <span className='sr-only'>Clear History</span>
+                            </Button>
+                        )}
+                    </CardHeader>
+                    <CardContent className="w-full">
+                         <ScrollArea className="h-96 pr-4">
+                        {candidates.length > 0 ? (
+                            <ul className="space-y-2">
+                                {candidates.map((c) => (
+                                <li key={c.id}>
+                                    <button
+                                        onClick={() => handleHistoryClick(c)}
+                                        className={cn(
+                                            "w-full text-left p-3 rounded-lg transition-colors flex items-center gap-3 group border",
+                                            selectedCandidate?.id === c.id ? "bg-primary/90 text-primary-foreground border-primary" : "hover:bg-muted/50 border-border"
+                                        )}>
+                                        <div className="p-2 bg-muted rounded-md">
+                                           <ScanText className={cn("w-5 h-5", selectedCandidate?.id === c.id ? "text-primary-foreground" : "text-primary")} />
                                         </div>
-                                        )}
-                                    </ScrollArea>
-                                </CardContent>
-                            </Card>
-                        </CarouselItem>
-                    </CarouselContent>
-                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-black/20 hover:bg-black/50 text-white border-white/20" />
-                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-black/20 hover:bg-black/50 text-white border-white/20" />
-                </Carousel>
+                                        <div className="flex-1 overflow-hidden">
+                                            <p className="font-semibold truncate">{c.candidate.name}</p>
+                                            <p className={cn("text-xs truncate", selectedCandidate?.id === c.id ? "text-primary-foreground/80" : "text-muted-foreground")}>{c.fileName}</p>
+                                        </div>
+                                        <div className={cn("font-semibold text-lg", getScoreColor(c.analysis.overallScore))}>
+                                            <span>{c.analysis.overallScore.toFixed(0)}</span>
+                                            <span className="text-sm text-muted-foreground">/100</span>
+                                        </div>
+                                    </button>
+                                </li>
+                                ))}
+                            </ul>
+                            ) : (
+                            <div className='h-full flex items-center justify-center'>
+                                <p className="text-sm text-muted-foreground text-center py-10">Your analyzed candidates will appear here.</p>
+                            </div>
+                            )}
+                        </ScrollArea>
+                    </CardContent>
+                </Card>
+            </aside>
+            <main className="lg:col-span-2 space-y-8">
+                {renderContent()}
+                <FeedbackCard />
             </main>
         </div>
     </div>
