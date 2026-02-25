@@ -8,8 +8,8 @@ export default function AuthLayout({
   return (
     <main className="relative min-h-svh flex items-center justify-center p-4">
         <Image
-            src="https://images.unsplash.com/photo-1677442135725-341e2124d3e8?q=80&w=2070&auto=format&fit=crop"
-            alt="Robotics and AI themed abstract background"
+            src="https://storage.googleapis.com/aif-stg-testing-images/background.png"
+            alt="AI brain analyzing resume and job market data"
             fill
             className="object-cover -z-10 filter blur-sm brightness-50"
         />
