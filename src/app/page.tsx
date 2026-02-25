@@ -74,6 +74,36 @@ export default function Home() {
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Load candidates from localStorage on initial client render
+  useEffect(() => {
+    if (isClient) {
+      const savedCandidates = localStorage.getItem('analyzedCandidates');
+      if (savedCandidates) {
+        try {
+          const parsedCandidates = JSON.parse(savedCandidates);
+          if (Array.isArray(parsedCandidates)) {
+            setCandidates(parsedCandidates);
+          }
+        } catch (error) {
+          console.error("Failed to parse candidates from localStorage:", error);
+        }
+      }
+    }
+  }, [isClient]);
+
+  // Save candidates to localStorage whenever the list changes
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem('analyzedCandidates', JSON.stringify(candidates));
+    }
+  }, [candidates, isClient]);
+
 
   useEffect(() => {
     if (state.success && state.data) {
