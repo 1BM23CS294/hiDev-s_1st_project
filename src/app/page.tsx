@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useEffect, useRef } from 'react';
 import { useFormStatus } from 'react-dom';
-import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, ScanText, Languages } from 'lucide-react';
+import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, ScanText, Languages, Star } from 'lucide-react';
 import { analyzeResume } from '@/app/actions';
 import type { AnalyzedCandidate } from '@/lib/types';
 import { Label } from '@/components/ui/label';
@@ -24,6 +24,7 @@ import { signOut } from 'firebase/auth';
 import { Logo } from '@/components/logo';
 import { Badge } from '@/components/ui/badge';
 import { FeedbackCard } from './components/feedback-card';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -138,7 +139,6 @@ export default function Home() {
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSelectedCandidate(null);
     const formData = new FormData(e.currentTarget);
     const jobDesc = formData.get('jobDescription') as string;
     const resume = formData.get('resumeFile') as File;
@@ -152,7 +152,8 @@ export default function Home() {
         }
         return;
     }
-
+    
+    setSelectedCandidate(null);
     setIsSubmitting(true);
     formAction(formData);
   };
@@ -205,7 +206,7 @@ export default function Home() {
                         </div>
                         <div className="pt-2 space-y-2">
                           <CardDescription>Upload a resume and job description to get instant AI-powered feedback.</CardDescription>
-                          <Badge variant="outline" className="border-primary/50 text-primary/90 font-normal">
+                           <Badge variant="outline" className="border-primary/50 text-primary/90 font-normal">
                               <Languages className="mr-2 h-4 w-4" />
                               Now with Multi-Language Support
                           </Badge>
@@ -281,10 +282,35 @@ export default function Home() {
                         </ScrollArea>
                     </CardContent>
                  </Card>
-                 <FeedbackCard />
             </div>
             <main className="lg:col-span-2">
-                {renderContent()}
+                <Carousel className="w-full h-full" opts={{ loop: true }}>
+                    <CarouselContent>
+                        <CarouselItem>
+                            {renderContent()}
+                        </CarouselItem>
+                        <CarouselItem>
+                             <Card className="h-full flex flex-col items-center justify-center text-center min-h-[calc(100vh-10rem)] p-8 bg-card/20 backdrop-blur-md border-primary/30">
+                                <CardHeader>
+                                    <div className="p-4 bg-primary/10 rounded-full mx-auto w-fit">
+                                        <Star className="w-10 h-10 text-primary" />
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="w-full max-w-lg">
+                                    <CardTitle className="text-3xl md:text-4xl font-bold tracking-tighter mb-2">
+                                        Feedback & Ratings
+                                    </CardTitle>
+                                    <CardDescription className="text-base md:text-lg text-muted-foreground max-w-xl mx-auto mb-8">
+                                        We value your feedback. Please let us know how we can improve.
+                                    </CardDescription>
+                                    <FeedbackCard />
+                                </CardContent>
+                            </Card>
+                        </CarouselItem>
+                    </CarouselContent>
+                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-black/20 hover:bg-black/50 text-white border-white/20" />
+                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-black/20 hover:bg-black/50 text-white border-white/20" />
+                </Carousel>
             </main>
         </div>
     </div>
