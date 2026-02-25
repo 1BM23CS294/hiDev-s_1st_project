@@ -23,6 +23,11 @@
           "type": "string",
           "description": "The last name of the user."
         },
+        "photoURL": {
+          "type": "string",
+          "description": "The URL of the user's profile picture.",
+          "format": "uri"
+        },
         "createdAt": {
           "type": "string",
           "description": "Timestamp when the user account was created.",

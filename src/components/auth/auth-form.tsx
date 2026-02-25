@@ -10,7 +10,8 @@ import {
   signInWithPopup,
   AuthError,
 } from 'firebase/auth';
-import { useAuth, useUser } from '@/firebase';
+import { getDoc, setDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { useAuth, useUser, useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +21,8 @@ import { Separator } from '@/components/ui/separator';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../ui/card';
 import { GoogleIcon } from './google-icon';
 import { cn } from '@/lib/utils';
+import { FirestorePermissionError } from '@/firebase/errors';
+import { errorEmitter } from '@/firebase/error-emitter';
 
 type AuthMode = 'login' | 'signup';
 
@@ -44,6 +47,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const [error, setError] = useState<string | null>(null);
 
   const auth = useAuth();
+  const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
@@ -74,6 +78,12 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       case 'auth/invalid-email':
          message = 'Please enter a valid email address.';
          break;
+      case 'auth/popup-blocked':
+        message = 'Authentication popup was blocked by your browser. Please allow popups for this site and try again.';
+        break;
+      case 'auth/popup-closed-by-user':
+        message = 'The authentication window was closed. Please try again.';
+        break;
       default:
         message = err.message;
     }
@@ -93,7 +103,28 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       if (mode === 'login') {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        const user = result.user;
+        const userDocRef = doc(firestore, 'users', user.uid);
+        
+        const userData = {
+          id: user.uid,
+          email: user.email,
+          firstName: '',
+          lastName: '',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        };
+
+        setDoc(userDocRef, userData).catch((error) => {
+          console.error("Error creating user document:", error);
+          const permissionError = new FirestorePermissionError({
+            path: userDocRef.path,
+            operation: 'create',
+            requestResourceData: userData,
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        });
       }
       toast({
         title: mode === 'login' ? 'Signed In' : 'Account Created',
@@ -112,7 +143,38 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     setError(null);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        const displayName = user.displayName?.split(' ') || [];
+        const firstName = displayName[0] || '';
+        const lastName = displayName.slice(1).join(' ') || '';
+
+        const userData = {
+          id: user.uid,
+          email: user.email,
+          firstName: firstName,
+          lastName: lastName,
+          photoURL: user.photoURL,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        };
+        
+        setDoc(userDocRef, userData).catch((error) => {
+          console.error("Error creating user document on Google sign-in:", error);
+          const permissionError = new FirestorePermissionError({
+            path: userDocRef.path,
+            operation: 'create',
+            requestResourceData: userData,
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        });
+      }
+
       toast({
         title: 'Signed In',
         description: "You've been successfully logged in with Google.",
