@@ -3,6 +3,7 @@ import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
   title: 'Intelligent Resume Analyzer',
@@ -29,16 +30,10 @@ export default function RootLayout({
         />
       </head>
       <body className={cn('font-body antialiased', 'dark')}>
-        <div className="relative min-h-svh">
-            <Image
-                src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=2070&auto=format&fit=crop"
-                alt="Blurry office background"
-                fill
-                className="object-cover -z-10 filter blur-sm brightness-[.3]"
-            />
-            {children}
-        </div>
-        <Toaster />
+        <FirebaseClientProvider>
+          {children}
+          <Toaster />
+        </FirebaseClientProvider>
       </body>
     </html>
   );

@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useEffect, useRef } from 'react';
 import { useFormStatus } from 'react-dom';
-import { FileText, UploadCloud, Users, Loader2, Trash2 } from 'lucide-react';
+import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut } from 'lucide-react';
 import { analyzeResume } from '@/app/actions';
 import type { AnalyzedCandidate } from '@/lib/types';
 import { Label } from '@/components/ui/label';
@@ -21,9 +21,14 @@ import {
   Sidebar,
   SidebarProvider,
   SidebarInset,
+  SidebarFooter,
 } from '@/components/ui/sidebar';
 import { CircularProgress } from './components/circular-progress';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth, useUser } from '@/firebase';
+import { redirect } from 'next/navigation';
+import { PageLoader } from '@/components/ui/page-loader';
+import { signOut } from 'firebase/auth';
 
 
 function SubmitButton() {
@@ -74,16 +79,19 @@ export default function Home() {
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-  const [isClient, setIsClient] = useState(false);
-
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
+  
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    if (!isUserLoading && !user) {
+      redirect('/login');
+    }
+  }, [user, isUserLoading]);
 
   // Load candidates from localStorage on initial client render
   useEffect(() => {
-    if (isClient) {
-      const savedCandidates = localStorage.getItem('analyzedCandidates');
+    if (user) {
+      const savedCandidates = localStorage.getItem(`analyzedCandidates_${user.uid}`);
       if (savedCandidates) {
         try {
           const parsedCandidates = JSON.parse(savedCandidates);
@@ -93,16 +101,19 @@ export default function Home() {
         } catch (error) {
           console.error("Failed to parse candidates from localStorage:", error);
         }
+      } else {
+        setCandidates([]);
       }
+      setSelectedCandidate(null);
     }
-  }, [isClient]);
+  }, [user]);
 
   // Save candidates to localStorage whenever the list changes
   useEffect(() => {
-    if (isClient) {
-      localStorage.setItem('analyzedCandidates', JSON.stringify(candidates));
+    if (user) {
+      localStorage.setItem(`analyzedCandidates_${user.uid}`, JSON.stringify(candidates));
     }
-  }, [candidates, isClient]);
+  }, [candidates, user]);
 
 
   useEffect(() => {
@@ -147,6 +158,11 @@ export default function Home() {
     });
   }
 
+  const handleSignOut = async () => {
+    await signOut(auth);
+    toast({ title: "Signed Out" });
+  };
+
   const renderContent = () => {
     if (isLoading) {
       return <AnalysisLoading />;
@@ -157,43 +173,49 @@ export default function Home() {
     return <WelcomeSplash />;
   };
 
+  if (isUserLoading || !user) {
+    return <PageLoader />;
+  }
+
   return (
      <SidebarProvider style={{ '--sidebar-width': '380px' } as React.CSSProperties}>
       <Sidebar>
         <div className="flex flex-col h-full bg-sidebar/80 backdrop-blur-xl border-r border-border/20">
-            <form ref={formRef} action={formAction} onSubmit={handleFormSubmit} className="flex flex-col flex-1 overflow-y-auto">
-                <div className="p-4 space-y-6 flex-1">
-                <Card className='bg-card/30 backdrop-blur-lg border-primary/40'>
-                    <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><FileText size={18} /> Job Description</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                    <Label htmlFor="job-description" className="sr-only">Job Description</Label>
-                    <Textarea
-                        id="job-description"
-                        name="jobDescription"
-                        placeholder="Paste the job description here..."
-                        className="min-h-[200px] text-sm bg-background/50 border-border/50"
-                        required
-                    />
-                    {state.errors?.jobDescription && <p className="text-red-500 text-sm mt-1">{state.errors.jobDescription[0]}</p>}
-                    </CardContent>
-                </Card>
+            <form ref={formRef} action={formAction} onSubmit={handleFormSubmit} className="flex flex-col flex-1 overflow-hidden">
+                <ScrollArea className="flex-1">
+                  <div className="p-4 space-y-6">
+                  <Card className='bg-card/30 backdrop-blur-lg border-primary/40'>
+                      <CardHeader>
+                      <CardTitle className="flex items-center gap-2"><FileText size={18} /> Job Description</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                      <Label htmlFor="job-description" className="sr-only">Job Description</Label>
+                      <Textarea
+                          id="job-description"
+                          name="jobDescription"
+                          placeholder="Paste the job description here..."
+                          className="min-h-[200px] text-sm bg-background/50 border-border/50"
+                          required
+                      />
+                      {state.errors?.jobDescription && <p className="text-red-500 text-sm mt-1">{state.errors.jobDescription[0]}</p>}
+                      </CardContent>
+                  </Card>
 
-                <Card className='bg-card/30 backdrop-blur-lg border-primary/40'>
-                    <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><UploadCloud size={18} /> Resume Upload</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                    <Label htmlFor="resume-file" className="sr-only">Resume</Label>
-                    <Input id="resume-file" name="resumeFile" type="file" ref={fileInputRef} onChange={(e) => setFileName(e.target.files?.[0]?.name || '')} className="hidden" required/>
-                        <Button type="button" variant="outline" className="w-full bg-transparent hover:bg-accent/50 border-border/50" onClick={() => fileInputRef.current?.click()}>
-                        {fileName ? <span className="truncate">{fileName}</span> : 'Select a file (PDF, DOCX)'}
-                        </Button>
-                    {state.errors?.resumeFile && <p className="text-red-500 text-sm mt-1">{state.errors.resumeFile[0]}</p>}
-                    </CardContent>
-                </Card>
-                </div>
+                  <Card className='bg-card/30 backdrop-blur-lg border-primary/40'>
+                      <CardHeader>
+                      <CardTitle className="flex items-center gap-2"><UploadCloud size={18} /> Resume Upload</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                      <Label htmlFor="resume-file" className="sr-only">Resume</Label>
+                      <Input id="resume-file" name="resumeFile" type="file" ref={fileInputRef} onChange={(e) => setFileName(e.target.files?.[0]?.name || '')} className="hidden" required/>
+                          <Button type="button" variant="outline" className="w-full bg-transparent hover:bg-accent/50 border-border/50" onClick={() => fileInputRef.current?.click()}>
+                          {fileName ? <span className="truncate">{fileName}</span> : 'Select a file (PDF, DOCX)'}
+                          </Button>
+                      {state.errors?.resumeFile && <p className="text-red-500 text-sm mt-1">{state.errors.resumeFile[0]}</p>}
+                      </CardContent>
+                  </Card>
+                  </div>
+                </ScrollArea>
                 <div className="p-4 border-t border-border/30 mt-auto sticky bottom-0 bg-sidebar/80 backdrop-blur-xl">
                 <SubmitButton />
                 </div>
@@ -239,15 +261,39 @@ export default function Home() {
                     )}
                 </ScrollArea>
             </div>
+            <SidebarFooter className="p-4 border-t border-border/30">
+                 <div className="flex items-center gap-3 mb-4">
+                    <Avatar>
+                        <AvatarImage src={user.photoURL ?? undefined} />
+                        <AvatarFallback>{getInitials(user.displayName || user.email || 'U')}</AvatarFallback>
+                    </Avatar>
+                    <div className='overflow-hidden'>
+                        <p className="font-semibold truncate text-sm">{user.displayName || 'User'}</p>
+                        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    </div>
+                </div>
+                <Button variant="outline" onClick={handleSignOut} className="w-full bg-transparent hover:bg-accent/50 border-border/50">
+                    <LogOut className="mr-2" />
+                    Sign Out
+                </Button>
+            </SidebarFooter>
         </div>
       </Sidebar>
-      <SidebarInset className='bg-transparent'>
-        <Header />
-        <ScrollArea className="h-[calc(100vh-4rem)]">
-            <div className="p-6 lg:p-8">
-            {renderContent()}
-            </div>
-        </ScrollArea>
+      <SidebarInset>
+        <div className='relative min-h-svh'>
+          <Image
+              src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=2070&auto=format&fit=crop"
+              alt="Blurry office background"
+              fill
+              className="object-cover -z-10 filter blur-sm brightness-[.3]"
+          />
+          <Header />
+          <ScrollArea className="h-[calc(100vh-4rem)]">
+              <div className="p-6 lg:p-8">
+              {renderContent()}
+              </div>
+          </ScrollArea>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );
