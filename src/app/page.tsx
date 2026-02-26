@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState, useEffect, useRef, useMemo, useTransition } from 'react';
+import { useActionState, useState, useEffect, useRef, useMemo } from 'react';
 import { useFormStatus } from 'react-dom';
 import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, Languages, Bot, DollarSign, Globe, Video, Clock, ArrowRight, ArrowLeft, Lightbulb, PenSquare, Flame, Sparkles, Fingerprint, Search, TrendingDown, AlertTriangle, GitCompareArrows, School, CaseSensitive, UserCheck, UserRound } from 'lucide-react';
 import { analyzeResume } from '@/app/actions';
@@ -34,7 +34,8 @@ import { HowToUse } from './components/how-to-use';
 import { RoadmapCard } from './components/roadmap-card';
 import { FeedbackCard } from './components/feedback-card';
 
-function SubmitButton({ isSubmitting, step, setStep }: { isSubmitting: boolean; step: number; setStep: (step: number) => void; }) {
+// useFormStatus must be used inside a form. This component is.
+function SubmitButton({ step, setStep }: { step: number; setStep: (step: number) => void; }) {
   const { pending } = useFormStatus();
 
   if (step === 1) {
@@ -46,8 +47,8 @@ function SubmitButton({ isSubmitting, step, setStep }: { isSubmitting: boolean; 
   }
 
   return (
-    <Button type="submit" disabled={pending || isSubmitting} className="w-full">
-      {(pending || isSubmitting) ? (
+    <Button type="submit" disabled={pending} className="w-full">
+      {pending ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           Analyzing...
@@ -81,14 +82,13 @@ function getInitials(name: string) {
 }
 
 export default function Home() {
-  const [state, formAction] = useActionState(analyzeResume, initialState);
+  // useActionState now returns a pending status, which simplifies loading state management.
+  const [state, formAction, isPending] = useActionState(analyzeResume, initialState);
   const [step, setStep] = useState(1);
   const [selectedCandidate, setSelectedCandidate] = useState<AnalyzedCandidate | null>(null);
   const [resumeFileName, setResumeFileName] = useState('');
   const [videoFileName, setVideoFileName] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState('');
-  const [, startTransition] = useTransition();
 
   const formRef = useRef<HTMLFormElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null); 
@@ -125,47 +125,50 @@ export default function Home() {
     }
   }, [user, isUserLoading]);
 
+  // This effect handles the result of the form action.
   useEffect(() => {
-    if (isSubmitting) {
-        if (state.success && state.data && user && reportsCollection) {
-          const newCandidate = state.data;
-          
-          const newReport = {
-            userId: user.uid,
-            createdAt: serverTimestamp(),
-            reportJson: JSON.stringify(newCandidate),
-          };
-          
-          addDoc(reportsCollection, newReport).catch((error) => {
-             const permissionError = new FirestorePermissionError({
-                path: reportsCollection.path,
-                operation: 'create',
-                requestResourceData: newReport,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-          });
-
-          setSelectedCandidate(newCandidate);
-          toast({
-            title: "Analysis Complete",
-            description: `${newCandidate.candidate.name}'s resume has been analyzed.`,
-            variant: "default",
-          });
-          formRef.current?.reset();
-          setResumeFileName('');
-          setVideoFileName('');
-          setStep(1);
-          setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
-        } else if (!state.success && state.message && state.message !== '') {
-          toast({
-            title: "Analysis Failed",
-            description: state.errors?._form?.[0] || state.errors?.country?.[0] || state.message,
-            variant: "destructive",
-          });
-        }
-        setIsSubmitting(false);
+    // Don't run on initial render or while the action is pending.
+    if (isPending || state.message === '') {
+      return;
     }
-  }, [state, toast, isSubmitting, user, firestore, reportsCollection]);
+
+    if (state.success && state.data && user && reportsCollection) {
+      const newCandidate = state.data;
+      
+      const newReport = {
+        userId: user.uid,
+        createdAt: serverTimestamp(),
+        reportJson: JSON.stringify(newCandidate),
+      };
+      
+      addDoc(reportsCollection, newReport).catch((error) => {
+          const permissionError = new FirestorePermissionError({
+            path: reportsCollection.path,
+            operation: 'create',
+            requestResourceData: newReport,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      });
+
+      setSelectedCandidate(newCandidate);
+      toast({
+        title: "Analysis Complete",
+        description: `${newCandidate.candidate.name}'s resume has been analyzed.`,
+        variant: "default",
+      });
+      formRef.current?.reset();
+      setResumeFileName('');
+      setVideoFileName('');
+      setStep(1);
+      setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    } else if (!state.success) {
+      toast({
+        title: "Analysis Failed",
+        description: state.errors?._form?.[0] || state.errors?.country?.[0] || state.message,
+        variant: "destructive",
+      });
+    }
+  }, [state, isPending, user, firestore, reportsCollection, toast]);
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -182,10 +185,7 @@ export default function Home() {
     }
     
     setSelectedCandidate(null);
-    setIsSubmitting(true);
-    startTransition(() => {
-      formAction(formData);
-    });
+    formAction(formData); // Directly call the action.
     setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
   
@@ -224,8 +224,9 @@ export default function Home() {
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
 
+  // The loading state is now driven directly by the `isPending` state from `useActionState`.
   const renderMainPanelContent = () => {
-    if (isSubmitting) {
+    if (isPending) {
       return <AnalysisLoading />;
     }
     if (selectedCandidate) {
@@ -349,7 +350,8 @@ export default function Home() {
                                               <ArrowLeft className="mr-2 h-4 w-4" /> Back
                                           </Button>
                                       )}
-                                      <SubmitButton isSubmitting={isSubmitting} step={step} setStep={setStep} />
+                                      {/* The submit button now lives inside the form and uses useFormStatus */}
+                                      <SubmitButton step={step} setStep={setStep} />
                                   </div>
                             </form>
                         </CardContent>
