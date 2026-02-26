@@ -196,7 +196,7 @@ export default function Home() {
         <div className="max-w-screen-2xl mx-auto space-y-6">
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="bg-black/30 border-primary/20 backdrop-blur-md">
+                <Card className="bg-black/50 border-primary/30 backdrop-blur-lg shadow-2xl shadow-primary/10">
                     <CardHeader className="bg-black/20 rounded-t-lg">
                         <div className="flex items-center justify-between">
                             <h1 className="text-xl font-bold">Intelligent Resume Analyzer</h1>
@@ -246,7 +246,7 @@ export default function Home() {
                     </CardContent>
                 </Card>
 
-                <Card className="bg-black/30 border-primary/20 backdrop-blur-md flex flex-col">
+                <Card className="bg-black/50 border-primary/30 backdrop-blur-lg shadow-2xl shadow-primary/10 flex flex-col">
                     <CardHeader className='flex-row items-center justify-between pb-4'>
                         <CardTitle className="flex items-center gap-2 text-lg font-semibold"><Users size={18} /> Analysis History</CardTitle>
                         {candidates.length > 0 && (
@@ -294,7 +294,7 @@ export default function Home() {
             </div>
 
             <div ref={resultsRef}>
-                <Card className="bg-black/30 border-primary/20 backdrop-blur-md flex flex-col overflow-hidden">
+                <Card className="bg-black/50 border-primary/30 backdrop-blur-lg shadow-2xl shadow-primary/10 flex flex-col overflow-hidden">
                     <CardContent className="p-0 flex-grow">
                         <ScrollArea className="h-full w-full">
                            <div className='p-6 min-h-[500px] flex flex-col justify-center'>
