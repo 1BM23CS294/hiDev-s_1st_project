@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useEffect, useRef, useMemo } from 'react';
 import { useFormStatus } from 'react-dom';
-import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, Languages, Bot, DollarSign, Globe, Video, Clock, ArrowRight, ArrowLeft, Lightbulb, PenSquare } from 'lucide-react';
+import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, Languages, Bot, DollarSign, Globe, Video, Clock, ArrowRight, ArrowLeft, Lightbulb, PenSquare, Eye } from 'lucide-react';
 import { analyzeResume } from '@/app/actions';
 import type { AnalyzedCandidate } from '@/lib/types';
 import { Label } from '@/components/ui/label';
@@ -22,13 +22,14 @@ import { useAuth, useUser, useFirestore, useCollection, useMemoFirebase } from '
 import { redirect } from 'next/navigation';
 import { PageLoader } from '@/components/ui/page-loader';
 import { signOut } from 'firebase/auth';
-import { collection, query, orderBy, addDoc, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
+import { collection, query, orderBy, addDoc, serverTimestamp, doc, deleteDoc, collectionGroup } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { getScoreStyling } from '@/lib/theme';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { countries } from '@/lib/countries';
 import { Separator } from '@/components/ui/separator';
 import { HowToUse } from './components/how-to-use';
+import { guestEmails } from '@/lib/guest-config';
 
 function SubmitButton({ isSubmitting, step, setStep }: { isSubmitting: boolean; step: number; setStep: (step: number) => void; }) {
   const { pending } = useFormStatus();
@@ -92,12 +93,21 @@ export default function Home() {
   const auth = useAuth();
   const firestore = useFirestore();
 
+  const isGuest = useMemo(() => user?.email && guestEmails.includes(user.email), [user]);
+  const historyTitle = isGuest ? 'Public Analysis Feed' : 'Analysis History';
+
   const selectedCurrency = useMemo(() => countries.find(c => c.value === selectedCountry)?.currency, [selectedCountry]);
 
   const reportsQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
+    
+    if (isGuest) {
+        return query(collectionGroup(firestore, 'analysisReports'), orderBy('createdAt', 'desc'));
+    }
+    
     return query(collection(firestore, 'users', user.uid, 'analysisReports'), orderBy('createdAt', 'desc'));
-  }, [firestore, user]);
+  }, [firestore, user, isGuest]);
+
 
   const { data: savedReports, isLoading: isLoadingReports } = useCollection(reportsQuery);
 
@@ -105,6 +115,7 @@ export default function Home() {
     if (!savedReports) return [];
     return savedReports.map(report => {
       const data = JSON.parse(report.reportJson);
+      // The report object from a collectionGroup query won't have a top-level `id` from `doc.id`, so we use the id from the parsed data.
       return { ...data, firestoreId: report.id, userId: report.userId };
     });
   }, [savedReports]);
@@ -151,6 +162,10 @@ export default function Home() {
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isGuest) {
+      toast({ title: 'Guest Mode', description: 'Guests cannot submit new analyses.', variant: 'destructive' });
+      return;
+    }
     const formData = new FormData(e.currentTarget);
     
     const jobDesc = formData.get('jobDescription') as string;
@@ -231,14 +246,21 @@ export default function Home() {
                         </div>
                         <div className="pt-2 space-y-2">
                           <CardDescription>A multi-step AI-powered analysis of your candidates.</CardDescription>
-                          <Badge variant="outline" className="border-primary/50 text-primary/90 font-normal">
-                              <Languages className="mr-2 h-4 w-4" />
-                              Now with Multi-Language Support
-                          </Badge>
+                          {isGuest ? (
+                            <Badge variant="secondary" className='border-amber-500/50 text-amber-400'>
+                              <Eye className="mr-2 h-4 w-4" /> Guest Mode: Read-Only
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="border-primary/50 text-primary/90 font-normal">
+                                <Languages className="mr-2 h-4 w-4" />
+                                Now with Multi-Language Support
+                            </Badge>
+                          )}
                         </div>
                     </CardHeader>
                     <CardContent className="flex-grow pt-6">
-                    <form ref={formRef} onSubmit={handleFormSubmit} className="space-y-4">
+                        {!isGuest ? (
+                        <form ref={formRef} onSubmit={handleFormSubmit} className="space-y-4">
                            <div className={cn("space-y-4", step !== 1 && "hidden")}>
                                 <h2 className='text-lg font-semibold text-primary'>Step 1: Core Information</h2>
                                 <div className="space-y-2">
@@ -314,19 +336,28 @@ export default function Home() {
                                 <SubmitButton isSubmitting={isSubmitting} step={step} setStep={setStep} />
                             </div>
                         </form>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center text-center h-full p-8">
+                            <Eye className="w-16 h-16 text-primary/50 mb-4" />
+                            <h3 className="text-xl font-semibold">Guest Mode</h3>
+                            <p className="text-muted-foreground max-w-sm">
+                              You are viewing in read-only mode. You can browse all public analysis reports but cannot submit new ones.
+                            </p>
+                          </div>
+                        )}
                     </CardContent>
                 </Card>
 
                 <Card className="bg-black/20 border-primary/20 backdrop-blur-xl shadow-2xl shadow-primary/20 flex flex-col">
                     <CardHeader className='flex-row items-center justify-between pb-4'>
-                        <CardTitle className="flex items-center gap-2 text-lg font-semibold"><Users size={18} /> Analysis History</CardTitle>
+                        <CardTitle className="flex items-center gap-2 text-lg font-semibold"><Users size={18} /> {historyTitle}</CardTitle>
                     </CardHeader>
                     <CardContent className="w-full flex-grow overflow-hidden">
                         <ScrollArea className="h-full pr-4 max-h-[500px]">
                         {isLoadingReports ? <div className='h-full flex items-center justify-center'><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : candidates.length > 0 ? (
                             <ul className="space-y-2">
                                 {candidates.map((c) => (
-                                <li key={c.firestoreId}>
+                                <li key={c.id}>
                                     <div className="relative group/item">
                                         <button
                                             onClick={() => handleHistoryClick(c)}
@@ -363,7 +394,7 @@ export default function Home() {
                             </ul>
                             ) : (
                             <div className='h-full flex flex-col items-center justify-center text-center p-4'>
-                                <p className="text-sm text-muted-foreground">Your past analyses will appear here.</p>
+                                <p className="text-sm text-muted-foreground">{isGuest ? 'No public analyses found.' : 'Your past analyses will appear here.'}</p>
                             </div>
                             )}
                         </ScrollArea>

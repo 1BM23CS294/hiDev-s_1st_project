@@ -270,7 +270,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
                 Sign in with Google
             </Button>
         </CardContent>
-        <CardFooter className="justify-center">
+        <CardFooter className="flex-col">
             <p className="text-sm text-muted-foreground">
             {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
             <Button variant="link" asChild>
@@ -279,6 +279,9 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
                 </Link>
             </Button>
             </p>
+             <CardDescription className="w-full text-center text-xs pt-4">
+                Guests can sign in with their pre-approved Google account for read-only access.
+            </CardDescription>
         </CardFooter>
     </Card>
   );

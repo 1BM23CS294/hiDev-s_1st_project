@@ -1,25 +1,16 @@
 /**
- * Core Philosophy: This ruleset enforces a strict private data model. Each
- * user can only access their own data. All operations (read, write, delete)
- * are restricted to the document owner.
+ * Core Philosophy: This ruleset enforces a strict private data model for owners,
+ * with an exception for read-only guest access to analysis reports.
  *
- * Data Structure: The data is organized hierarchically. A top-level `/users`
- * collection holds individual user documents, identified by the user's UID. All
- * other data, such as resumes, job descriptions, and analysis reports, are stored
- * in subcollections directly under the corresponding user's document
- * (e.g., `/users/{userId}/resumes/{resumeId}`).
+ * Data Structure: Each user's data is stored under `/users/{userId}`.
  *
  * Key Security Decisions:
- * - Private Data: All data is private. Users can only read and write their own
- *   documents. There is no public or shared data.
+ * - Private Data for Owners: A user can only read and write their own documents.
+ * - Guest Access: A predefined list of guest emails is granted read-only (`get`, `list`)
+ *   access to the `analysisReports` collection group, allowing them to view all reports
+ *   across all users. Guests cannot write any data.
  * - User Enumeration Prevention: Listing the top-level `/users` collection is
- *   explicitly disallowed to prevent malicious actors from harvesting a list of
- *   all user IDs.
- *
- * Denormalization for Authorization: The security model relies on denormalizing the
- * owner's `userId` into the path of every document. This avoids the need for slow
- * and costly `get()` calls to parent documents to verify ownership, resulting in
- * faster and more secure rules for all operations.
+ *   disallowed.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -29,56 +20,42 @@ service cloud.firestore {
     // Helper Functions
     //-------------------------------------------------------------------------//
 
-    /**
-     * Checks if a user is authenticated.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Checks if the currently authenticated user's UID matches the provided userId.
-     * This is the primary function for establishing document ownership.
-     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
     /**
-     * A robust check for update/delete operations, ensuring the user is the owner
-     * AND that the document they are trying to modify actually exists.
+     * Checks if the signed-in user's email is in the guest list.
+     * IMPORTANT: Add the Google account emails of your guests to this list.
+     * These users will have read-only access to all analysis reports.
      */
+    function isGuest() {
+      return isSignedIn() && request.auth.token.email in [
+        // Example: 'guest-viewer@example.com',
+        // Example: 'another-guest@gmail.com'
+      ];
+    }
+
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
     }
 
-    /**
-     * Validates required ownership fields for a new User document.
-     * Ensures the document's internal ID matches the user's UID.
-     */
     function isValidUserDocOnCreate(userId) {
       return request.resource.data.id == userId;
     }
 
-    /**
-     * Validates that the core ownership ID of a User document is immutable.
-     */
     function isValidUserDocOnUpdate() {
       return request.resource.data.id == resource.data.id;
     }
 
-    /**
-     * Validates ownership fields for a new document in a user subcollection.
-     * Ensures the document's internal userId points back to the owner.
-     */
     function isValidSubcollectionDocOnCreate(userId) {
       return request.resource.data.userId == userId;
     }
 
-    /**
-     * Validates that the ownership link (`userId`) in a subcollection document
-     * is immutable and cannot be reassigned to another user.
-     */
     function isValidSubcollectionDocOnUpdate() {
       return request.resource.data.userId == resource.data.userId;
     }
@@ -88,16 +65,6 @@ service cloud.firestore {
     // Collection Rules
     //-------------------------------------------------------------------------//
 
-    /**
-     * @description Manages user profile documents. A user can only access their
-     *   own profile. Listing all users is disallowed to prevent user enumeration.
-     * @path /users/{userId}
-     * @allow (get) Only the owner can view their profile.
-     * @deny (list) Any user attempting to list the `/users` collection to prevent
-     *   user enumeration.
-     * @allow (create, update, delete) Only the owner of the document can modify it.
-     * @principle Enforces strict data privacy for user profiles.
-     */
     match /users/{userId} {
       allow get: if isOwner(userId);
       allow list: if false;
@@ -106,13 +73,6 @@ service cloud.firestore {
       allow delete: if isExistingOwner(userId);
     }
 
-    /**
-     * @description Secures a user's collection of resumes. Only the owner
-     *   can read, list, write, or delete their own resumes.
-     * @path /users/{userId}/resumes/{resumeId}
-     * @allow (get, list, create, update, delete) Only the owner of the document can perform any action.
-     * @principle Strict privacy for all user-generated content.
-     */
     match /users/{userId}/resumes/{resumeId} {
       allow get, list: if isOwner(userId);
       allow create: if isOwner(userId) && isValidSubcollectionDocOnCreate(userId);
@@ -120,13 +80,6 @@ service cloud.firestore {
       allow delete: if isExistingOwner(userId);
     }
 
-    /**
-     * @description Secures a user's collection of job descriptions.
-     *   Only the owner can read, list, write, or delete their own job descriptions.
-     * @path /users/{userId}/jobDescriptions/{jobDescriptionId}
-     * @allow (get, list, create, update, delete) Only the owner of the document can perform any action.
-     * @principle Strict privacy for all user-generated content.
-     */
     match /users/{userId}/jobDescriptions/{jobDescriptionId} {
       allow get, list: if isOwner(userId);
       allow create: if isOwner(userId) && isValidSubcollectionDocOnCreate(userId);
@@ -134,19 +87,19 @@ service cloud.firestore {
       allow delete: if isExistingOwner(userId);
     }
 
-    /**
-     * @description Secures a user's collection of analysis reports.
-     *   Only the owner can read, list, write, or delete their own reports.
-     * @path /users/{userId}/analysisReports/{analysisReportId}
-     * @allow (get, list, create, update, delete) Only the owner of the document can perform any action.
-     * @principle Strict privacy for all user-generated content.
-     */
+    // Rules for analysisReports must allow guest reads.
     match /users/{userId}/analysisReports/{analysisReportId} {
-      allow get, list: if isOwner(userId);
+      // Owners can read and list their own reports. Guests can also read (get) any report.
+      allow get, list: if isOwner(userId) || isGuest();
+      // Only owners can create, update, or delete their own reports.
       allow create: if isOwner(userId) && isValidSubcollectionDocOnCreate(userId);
       allow update: if isExistingOwner(userId) && isValidSubcollectionDocOnUpdate();
       allow delete: if isExistingOwner(userId);
     }
 
+    // This collection group rule allows guests to list all reports across all users.
+    match /{path=**}/analysisReports/{reportId} {
+      allow list: if isGuest();
+    }
   }
 }

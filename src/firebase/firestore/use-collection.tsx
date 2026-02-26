@@ -90,11 +90,8 @@ export function useCollection<T = any>(
         let path: string;
 
         if (internalQuery._query.collectionGroup) {
-          // This is a collection group query. The path is not a single, well-defined string.
-          // We represent it as `*/<collectionGroupId>` for the error message.
-          path = `*/${internalQuery._query.collectionGroup}`;
+          path = `collection group '${internalQuery._query.collectionGroup}'`;
         } else if (internalQuery._query.path) {
-          // This is a standard collection or subcollection query.
           path = internalQuery._query.path.canonicalString();
         } else {
            // Fallback, should not happen for valid queries.
