@@ -71,6 +71,7 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null); // For scrolling to results
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
@@ -117,6 +118,7 @@ export default function Home() {
           });
           formRef.current?.reset();
           setFileName('');
+          setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
         } else if (!state.success && state.message && state.message !== '') {
           toast({
             title: "Analysis Failed",
@@ -147,6 +149,7 @@ export default function Home() {
     setSelectedCandidate(null);
     setIsSubmitting(true);
     formAction(formData);
+    setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
   
   const clearHistory = () => {
@@ -170,6 +173,7 @@ export default function Home() {
   
   const handleHistoryClick = (candidate: AnalyzedCandidate) => {
       setSelectedCandidate(candidate);
+      setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
 
 
@@ -189,21 +193,10 @@ export default function Home() {
 
   return (
      <div className="relative min-h-svh w-full p-4 md:p-6 lg:p-8">
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 max-w-screen-2xl mx-auto">
-            {/* Main Content Panel */}
-            <div className="xl:col-span-2">
-                <Card className="h-full min-h-[840px] bg-card/20 border-primary/30 flex flex-col overflow-hidden">
-                    <CardContent className="p-0 flex-grow">
-                        <ScrollArea className="h-full w-full p-6">
-                            {renderMainPanelContent()}
-                        </ScrollArea>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Sidebar Panels */}
-            <div className="space-y-6">
-                 <Card className="bg-card/20 border-primary/30">
+        <div className="max-w-screen-2xl mx-auto space-y-6">
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="bg-card/20 border-primary/30">
                     <CardHeader className="bg-black/30 rounded-t-lg">
                         <div className="flex items-center justify-between">
                             <h1 className="text-xl font-bold">Intelligent Resume Analyzer</h1>
@@ -264,7 +257,7 @@ export default function Home() {
                         )}
                     </CardHeader>
                     <CardContent className="w-full flex-grow overflow-hidden">
-                        <ScrollArea className="h-[240px] pr-4">
+                        <ScrollArea className="h-[438px] pr-4">
                         {isLoadingReports ? <div className='h-full flex items-center justify-center'><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : candidates.length > 0 ? (
                             <ul className="space-y-2">
                                 {candidates.map((c) => (
@@ -298,8 +291,21 @@ export default function Home() {
                         </ScrollArea>
                     </CardContent>
                 </Card>
-                <FeedbackCard />
             </div>
+
+            <div ref={resultsRef}>
+                <Card className="bg-card/20 border-primary/30 flex flex-col overflow-hidden">
+                    <CardContent className="p-0 flex-grow">
+                        <ScrollArea className="h-full w-full">
+                           <div className='p-6 min-h-[500px] flex flex-col justify-center'>
+                             {renderMainPanelContent()}
+                           </div>
+                        </ScrollArea>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <FeedbackCard />
         </div>
     </div>
   );
