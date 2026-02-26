@@ -22,7 +22,7 @@ import { useAuth, useUser, useFirestore, useCollection, useMemoFirebase } from '
 import { redirect } from 'next/navigation';
 import { PageLoader } from '@/components/ui/page-loader';
 import { signOut } from 'firebase/auth';
-import { collection, query, orderBy, addDoc, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
+import { collection, query, orderBy, addDoc, serverTimestamp, doc, deleteDoc, collectionGroup } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { getScoreStyling } from '@/lib/theme';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -95,17 +95,17 @@ export default function Home() {
   const selectedCurrency = useMemo(() => countries.find(c => c.value === selectedCountry)?.currency, [selectedCountry]);
 
   const reportsQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return query(collection(firestore, `users/${user.uid}/analysisReports`), orderBy('createdAt', 'desc'));
-  }, [user, firestore]);
+    if (!firestore) return null;
+    return query(collectionGroup(firestore, 'analysisReports'), orderBy('createdAt', 'desc'));
+  }, [firestore]);
 
   const { data: savedReports, isLoading: isLoadingReports } = useCollection(reportsQuery);
 
-  const candidates = useMemo((): (AnalyzedCandidate & { firestoreId: string })[] => {
+  const candidates = useMemo((): (AnalyzedCandidate & { firestoreId: string; userId: string; })[] => {
     if (!savedReports) return [];
     return savedReports.map(report => {
       const data = JSON.parse(report.reportJson);
-      return { ...data, firestoreId: report.id };
+      return { ...data, firestoreId: report.id, userId: report.userId };
     });
   }, [savedReports]);
 
@@ -153,7 +153,6 @@ export default function Home() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     
-    // Simple validation for step 1 fields before showing loading state
     const jobDesc = formData.get('jobDescription') as string;
     const resumeFile = formData.get('resumeFile') as File;
     const country = formData.get('country') as string;
@@ -170,19 +169,22 @@ export default function Home() {
     setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
   
-  const clearHistory = () => {
-    if(!user || !firestore) return;
+  const handleDeleteReport = (reportId: string, ownerId: string) => {
+    if(!user || !firestore || user.uid !== ownerId) return;
 
-    candidates.forEach(c => {
-        deleteDoc(doc(firestore, `users/${user.uid}/analysisReports`, c.firestoreId));
-    });
+    const docRef = doc(firestore, 'users', ownerId, 'analysisReports', reportId);
+    deleteDoc(docRef);
     
-    setSelectedCandidate(null);
+    const deletedCandidate = candidates.find(c => c.firestoreId === reportId);
+    if (selectedCandidate && deletedCandidate && selectedCandidate.id === deletedCandidate.id) {
+        setSelectedCandidate(null);
+    }
+    
     toast({
-        title: "History Cleared",
-        description: "All candidate analyses have been removed.",
+        title: "Analysis Deleted",
+        description: "The selected analysis has been removed.",
     });
-  }
+  };
 
   const handleSignOut = async () => {
     await signOut(auth);
@@ -317,44 +319,51 @@ export default function Home() {
 
                 <Card className="bg-black/20 border-primary/20 backdrop-blur-xl shadow-2xl shadow-primary/20 flex flex-col">
                     <CardHeader className='flex-row items-center justify-between pb-4'>
-                        <CardTitle className="flex items-center gap-2 text-lg font-semibold"><Users size={18} /> Analysis History</CardTitle>
-                        {candidates.length > 0 && (
-                            <Button variant="ghost" size="icon" onClick={clearHistory} className="h-7 w-7 text-muted-foreground hover:text-destructive">
-                                <Trash2 size={16}/>
-                                <span className='sr-only'>Clear History</span>
-                            </Button>
-                        )}
+                        <CardTitle className="flex items-center gap-2 text-lg font-semibold"><Users size={18} /> Public Analyses</CardTitle>
                     </CardHeader>
                     <CardContent className="w-full flex-grow overflow-hidden">
                         <ScrollArea className="h-full pr-4 max-h-[500px]">
                         {isLoadingReports ? <div className='h-full flex items-center justify-center'><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : candidates.length > 0 ? (
                             <ul className="space-y-2">
                                 {candidates.map((c) => (
-                                <li key={c.id}>
-                                    <button
-                                        onClick={() => handleHistoryClick(c)}
-                                        className={cn(
-                                            "w-full text-left p-3 rounded-lg transition-colors flex items-center gap-3 group border",
-                                            selectedCandidate?.id === c.id ? "bg-primary/90 text-primary-foreground border-primary" : "hover:bg-muted/50 border-border"
-                                        )}>
-                                        <div className="p-2 bg-muted rounded-md">
-                                        <Bot className={cn("w-5 h-5", selectedCandidate?.id === c.id ? "text-primary-foreground" : "text-primary")} />
-                                        </div>
-                                        <div className="flex-1 overflow-hidden">
-                                            <p className="font-semibold truncate">{c.candidate.name}</p>
-                                            <p className={cn("text-xs truncate", selectedCandidate?.id === c.id ? "text-primary-foreground/80" : "text-muted-foreground")}>{c.fileName}</p>
-                                        </div>
-                                        <div className={cn("font-semibold text-lg", getScoreStyling(c.analysis.overallScore).color)}>
-                                            <span>{c.analysis.overallScore.toFixed(0)}</span>
-                                            <span className="text-sm text-muted-foreground">/100</span>
-                                        </div>
-                                    </button>
+                                <li key={c.firestoreId}>
+                                    <div className="relative group/item">
+                                        <button
+                                            onClick={() => handleHistoryClick(c)}
+                                            className={cn(
+                                                "w-full text-left p-3 rounded-lg transition-colors flex items-center gap-3 border",
+                                                selectedCandidate?.id === c.id ? "bg-primary/90 text-primary-foreground border-primary" : "hover:bg-muted/50 border-border"
+                                            )}>
+                                            <div className="p-2 bg-muted rounded-md">
+                                            <Bot className={cn("w-5 h-5", selectedCandidate?.id === c.id ? "text-primary-foreground" : "text-primary")} />
+                                            </div>
+                                            <div className="flex-1 overflow-hidden">
+                                                <p className="font-semibold truncate">{c.candidate.name}</p>
+                                                <p className={cn("text-xs truncate", selectedCandidate?.id === c.id ? "text-primary-foreground/80" : "text-muted-foreground")}>{c.fileName}</p>
+                                            </div>
+                                            <div className={cn("font-semibold text-lg", getScoreStyling(c.analysis.overallScore).color)}>
+                                                <span>{c.analysis.overallScore.toFixed(0)}</span>
+                                                <span className="text-sm text-muted-foreground">/100</span>
+                                            </div>
+                                        </button>
+                                        {user && c.userId === user.uid && (
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleDeleteReport(c.firestoreId, c.userId)}
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-destructive opacity-0 group-hover/item:opacity-100"
+                                            >
+                                                <Trash2 size={16}/>
+                                                <span className='sr-only'>Delete Report</span>
+                                            </Button>
+                                        )}
+                                    </div>
                                 </li>
                                 ))}
                             </ul>
                             ) : (
                             <div className='h-full flex flex-col items-center justify-center text-center p-4'>
-                                <p className="text-sm text-muted-foreground">Your analyzed candidates will appear here.</p>
+                                <p className="text-sm text-muted-foreground">No public analyses yet. Be the first!</p>
                             </div>
                             )}
                         </ScrollArea>
