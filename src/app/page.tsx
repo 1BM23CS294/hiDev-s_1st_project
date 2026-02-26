@@ -167,9 +167,17 @@ export default function Home() {
       setVideoFileName('');
       setStep(1);
     } else if (!state.success) {
+      const errorDescription = 
+        state.errors?._form?.[0] ||
+        state.errors?.resumeFile?.[0] ||
+        state.errors?.jobDescription?.[0] ||
+        state.errors?.country?.[0] ||
+        state.errors?.videoFile?.[0] ||
+        state.message;
+
       toast({
         title: "Analysis Failed",
-        description: state.errors?._form?.[0] || state.errors?.country?.[0] || state.message,
+        description: errorDescription,
         variant: "destructive",
       });
     }

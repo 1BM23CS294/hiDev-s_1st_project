@@ -108,22 +108,31 @@ export async function analyzeResume(prevState: FormState, formData: FormData): P
         return `data:${file.type};base64,${Buffer.from(fileBuffer).toString('base64')}`;
     }
 
-    // 1. Convert resume to data URI and start core analysis
+    // 1. Convert resume to data URI
     const resumeDataUri = await fileToDataUri(resumeFile);
-    const extractedInfo = await extractResumeInformation({ resumeDataUri });
+
+    // 2. Start core analysis, with specific error handling for parsing
+    let extractedInfo;
+    try {
+        extractedInfo = await extractResumeInformation({ resumeDataUri });
+    } catch (e) {
+        console.error("Error during extractResumeInformation:", e);
+        // This is a critical failure point. Provide a detailed error message.
+        throw new Error("The AI failed to read the resume. The file may be corrupted, password-protected, or in an unsupported format. Please try another file.");
+    }
 
     if (!extractedInfo || !extractedInfo.name) {
-       throw new Error('Could not parse resume. Please ensure the file is a valid resume (PDF, DOCX) and is not corrupted.');
+       throw new Error('Could not parse resume. The AI could not find key details like the candidate\'s name. Please ensure the file is a valid and clearly structured resume.');
     }
     
     const resumeExperienceSummary = extractedInfo.summary || extractedInfo.experience.map(exp => `${exp.title} at ${exp.company}: ${exp.description}`).join('\n');
     const resumeFullTextForProfiling = `${extractedInfo.summary || ''}\n\nSkills: ${extractedInfo.skills.join(', ')}\n\nExperience:\n${resumeExperienceSummary}`;
 
-    // 2. Perform analysis with score first.
+    // 3. Perform analysis with score first.
     const analysis = await generateResumeMatchScore({ resumeSkills: extractedInfo.skills, resumeExperience: resumeExperienceSummary, jobDescription });
     if (!analysis) throw new Error('Core analysis failed to generate a score.');
 
-    // 3. Perform all other analyses in parallel, now with the correct score for recommendations.
+    // 4. Perform all other analyses in parallel, now with the correct score for recommendations.
     const allOtherPromises = [
         generateHiringRecommendations({
             parsedResume: {
