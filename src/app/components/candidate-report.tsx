@@ -18,8 +18,10 @@ import { cn } from '@/lib/utils';
 import { CircularProgress } from './circular-progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { getScoreStyling } from '@/lib/theme';
 
 function PerformanceMetric({ label, score, icon: Icon, explanation }: { label: string, score: number, icon: React.ElementType, explanation: string }) {
+    const styling = getScoreStyling(score * 10); // score is 0-10, styling expects 0-100
     return (
         <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -29,16 +31,10 @@ function PerformanceMetric({ label, score, icon: Icon, explanation }: { label: s
                 </div>
                 <p className="text-sm font-semibold">{score}/10</p>
             </div>
-            <Progress value={score * 10} indicatorClassName={getScoreColor(score, true)} />
+            <Progress value={score * 10} indicatorClassName={styling.indicator} />
             <p className='text-xs text-muted-foreground'>{explanation}</p>
         </div>
     )
-}
-
-function getScoreColor(score: number, isBg = false) {
-    if (score >= 80) return isBg ? 'bg-green-400' : 'text-green-400';
-    if (score >= 60) return isBg ? 'bg-yellow-400' : 'text-yellow-400';
-    return isBg ? 'bg-red-400' : 'text-red-400';
 }
 
 export function CandidateReport({ data }: { data: AnalyzedCandidate }) {

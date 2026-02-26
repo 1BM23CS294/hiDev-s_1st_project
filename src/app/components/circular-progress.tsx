@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from "@/lib/utils";
+import { getScoreStyling } from "@/lib/theme";
 import { useEffect, useState } from "react";
 
 type CircularProgressProps = {
@@ -21,24 +22,8 @@ export function CircularProgress({ value, size = 140, strokeWidth = 10, classNam
     const timer = setTimeout(() => setProgress(value), 100);
     return () => clearTimeout(timer);
   }, [value]);
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'stroke-green-400';
-    if (score >= 60) return 'stroke-yellow-400';
-    return 'stroke-red-400';
-  };
-
-  const getScoreTextColor = (score: number) => {
-    if (score >= 80) return 'text-green-400';
-    if (score >= 60) return 'text-yellow-400';
-    return 'text-red-400';
-  };
   
-  const getRatingText = (score: number) => {
-    if (score >= 80) return "Excellent Match";
-    if (score >= 60) return "Good Match";
-    return "Needs Improvement";
-  }
+  const styling = getScoreStyling(value);
 
   return (
     <div className={cn('relative flex items-center justify-center', className)} style={{ width: size, height: size }}>
@@ -52,7 +37,7 @@ export function CircularProgress({ value, size = 140, strokeWidth = 10, classNam
           cy={size / 2}
         />
         <circle
-          className={cn('transform -rotate-90 origin-center transition-[stroke-dashoffset] duration-1000 ease-out', getScoreColor(value))}
+          className={cn('transform -rotate-90 origin-center transition-[stroke-dashoffset] duration-1000 ease-out', styling.stroke)}
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={offset}
@@ -64,11 +49,11 @@ export function CircularProgress({ value, size = 140, strokeWidth = 10, classNam
         />
       </svg>
       <div className="absolute flex flex-col items-center text-center">
-        <span className={cn("text-4xl font-bold", getScoreTextColor(value))}>
+        <span className={cn("text-4xl font-bold", styling.color)}>
           {Math.round(value)}
           <span className="text-2xl font-medium text-foreground/50">%</span>
         </span>
-        <span className="text-xs font-medium text-foreground/80 mt-1">{getRatingText(value)}</span>
+        <span className="text-xs font-medium text-foreground/80 mt-1">{styling.rating}</span>
       </div>
     </div>
   );

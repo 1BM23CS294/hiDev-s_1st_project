@@ -26,6 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import { FeedbackCard } from './components/feedback-card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/components/ui/carousel';
 import Autoplay from 'embla-carousel-autoplay';
+import { getScoreStyling } from '@/lib/theme';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -64,12 +65,6 @@ function getInitials(name: string) {
     .join('')
     .toUpperCase();
 }
-
-const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-400';
-    if (score >= 60) return 'text-yellow-400';
-    return 'text-red-400';
-};
 
 export default function Home() {
   const [state, formAction] = useActionState(analyzeResume, initialState);
@@ -191,7 +186,7 @@ export default function Home() {
   };
 
 
-  const renderContent = () => {
+  const renderMainPanelContent = () => {
     if (isSubmitting) {
       return <AnalysisLoading />;
     }
@@ -218,15 +213,13 @@ export default function Home() {
             <CarouselContent className="h-[740px]">
                 <CarouselItem>
                    <div className="p-1 h-full grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="h-full">
-                            <Card className="h-full bg-card/20 border-primary/30 flex flex-col">
-                                <CardHeader className="flex-grow-0">
-                                <ScrollArea className="h-full pr-4">
-                                    {renderContent()}
+                        <Card className="h-full bg-card/20 border-primary/30 flex flex-col overflow-hidden">
+                            <CardContent className="p-0 flex-grow">
+                                <ScrollArea className="h-full w-full p-6">
+                                    {renderMainPanelContent()}
                                 </ScrollArea>
-                                </CardHeader>
-                            </Card>
-                        </div>
+                            </CardContent>
+                        </Card>
                         <div className="h-full">
                             <Card className="h-full bg-card/20 border-primary/30 flex flex-col">
                                 <CardHeader className="bg-black/30 rounded-t-lg">
@@ -250,7 +243,7 @@ export default function Home() {
                                     </Badge>
                                     </div>
                                 </CardHeader>
-                                <CardContent className="flex-grow">
+                                <CardContent className="flex-grow pt-6">
                                 <form ref={formRef} onSubmit={handleFormSubmit} className="space-y-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="job-description" className='flex items-center gap-2'><FileText size={16} /> Job Description</Label>
@@ -312,7 +305,7 @@ export default function Home() {
                                                         <p className="font-semibold truncate">{c.candidate.name}</p>
                                                         <p className={cn("text-xs truncate", selectedCandidate?.id === c.id ? "text-primary-foreground/80" : "text-muted-foreground")}>{c.fileName}</p>
                                                     </div>
-                                                    <div className={cn("font-semibold text-lg", getScoreColor(c.analysis.overallScore))}>
+                                                    <div className={cn("font-semibold text-lg", getScoreStyling(c.analysis.overallScore).color)}>
                                                         <span>{c.analysis.overallScore.toFixed(0)}</span>
                                                         <span className="text-sm text-muted-foreground">/100</span>
                                                     </div>
