@@ -18,18 +18,17 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useAuth, useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useAuth, useUser, useFirestore, useCollection, useDoc, useMemoFirebase, FirestorePermissionError, errorEmitter } from '@/firebase';
 import { redirect } from 'next/navigation';
 import { PageLoader } from '@/components/ui/page-loader';
 import { signOut } from 'firebase/auth';
-import { collection, query, orderBy, addDoc, serverTimestamp, doc, deleteDoc, collectionGroup } from 'firebase/firestore';
+import { collection, query, orderBy, addDoc, serverTimestamp, doc, deleteDoc, collectionGroup, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { getScoreStyling } from '@/lib/theme';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { countries } from '@/lib/countries';
 import { Separator } from '@/components/ui/separator';
 import { HowToUse } from './components/how-to-use';
-import { guestEmails as initialGuestEmails } from '@/lib/guest-config';
 
 function SubmitButton({ isSubmitting, step, setStep }: { isSubmitting: boolean; step: number; setStep: (step: number) => void; }) {
   const { pending } = useFormStatus();
@@ -85,7 +84,6 @@ export default function Home() {
   const [videoFileName, setVideoFileName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState('');
-  const [guestEmails, setGuestEmails] = useState(initialGuestEmails);
   const [newGuestEmail, setNewGuestEmail] = useState('');
 
   const formRef = useRef<HTMLFormElement>(null);
@@ -95,6 +93,16 @@ export default function Home() {
   const auth = useAuth();
   const firestore = useFirestore();
 
+  const guestConfigRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    // This is the single document that holds the configuration.
+    return doc(firestore, 'config', 'guests');
+  }, [firestore]);
+
+  const { data: guestConfigDoc, isLoading: isLoadingGuests } = useDoc(guestConfigRef);
+
+  const guestEmails = useMemo(() => guestConfigDoc?.emails || [], [guestConfigDoc]);
+  
   const isGuest = useMemo(() => user?.email && guestEmails.includes(user.email), [user, guestEmails]);
   const historyTitle = isGuest ? 'Public Analysis Feed' : 'Analysis History';
 
@@ -215,11 +223,21 @@ export default function Home() {
 
   const handleAddGuest = () => {
     if (newGuestEmail && !guestEmails.includes(newGuestEmail) && newGuestEmail.includes('@')) {
-      setGuestEmails([...guestEmails, newGuestEmail]);
+      if (!guestConfigRef) return;
+      setDoc(guestConfigRef, { emails: arrayUnion(newGuestEmail) }, { merge: true })
+        .catch(() => {
+          const permissionError = new FirestorePermissionError({
+            path: guestConfigRef.path,
+            operation: 'update',
+            requestResourceData: { emails: `add ${newGuestEmail}` },
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        });
+
       setNewGuestEmail('');
       toast({
-        title: 'Guest Added (UI Demo)',
-        description: 'To make this change permanent, please ask me to update the configuration.',
+        title: 'Guest Added',
+        description: `${newGuestEmail} will now have guest access.`,
       });
     } else {
       toast({
@@ -231,10 +249,19 @@ export default function Home() {
   };
 
   const handleRemoveGuest = (emailToRemove: string) => {
-    setGuestEmails(guestEmails.filter(email => email !== emailToRemove));
+    if (!guestConfigRef) return;
+    setDoc(guestConfigRef, { emails: arrayRemove(emailToRemove) }, { merge: true })
+      .catch(() => {
+        const permissionError = new FirestorePermissionError({
+          path: guestConfigRef.path,
+          operation: 'update',
+          requestResourceData: { emails: `remove ${emailToRemove}` },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      });
     toast({
-      title: 'Guest Removed (UI Demo)',
-      description: 'To make this change permanent, please ask me to update the configuration.',
+      title: 'Guest Removed',
+      description: `${emailToRemove} no longer has guest access.`,
     });
   };
 
@@ -465,13 +492,22 @@ export default function Home() {
                           value={newGuestEmail}
                           onChange={(e) => setNewGuestEmail(e.target.value)}
                           className="bg-black/20 border-border/50"
+                          disabled={isLoadingGuests}
                         />
-                        <Button onClick={handleAddGuest}>Add Guest</Button>
+                        <Button onClick={handleAddGuest} disabled={isLoadingGuests}>
+                          {isLoadingGuests && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                          Add Guest
+                        </Button>
                       </div>
                     </div>
                     <div>
                       <h4 className="font-semibold mb-2 text-muted-foreground">Current Guests</h4>
-                      {guestEmails.length > 0 ? (
+                      {isLoadingGuests ? (
+                        <div className="space-y-2">
+                          <Skeleton className="h-9 w-full" />
+                          <Skeleton className="h-9 w-full" />
+                        </div>
+                      ) : guestEmails.length > 0 ? (
                         <ul className="space-y-2">
                           {guestEmails.map(email => (
                             <li key={email} className="flex items-center justify-between p-2 rounded-md bg-black/20">
@@ -486,10 +522,6 @@ export default function Home() {
                         <p className="text-sm text-muted-foreground text-center py-4">There are currently no guest users.</p>
                       )}
                     </div>
-                    <Separator />
-                    <p className="text-xs text-muted-foreground">
-                      <strong>Note:</strong> Changes made here are for UI demonstration only. To permanently add or remove a guest, you must ask me to update the guest list in the configuration.
-                    </p>
                   </div>
                 </CardContent>
               </Card>

@@ -169,6 +169,24 @@
         "createdAt",
         "reportJson"
       ]
+    },
+    "GuestList": {
+      "title": "Guest List",
+      "description": "A document containing the list of guest user emails.",
+      "type": "object",
+      "properties": {
+        "emails": {
+          "type": "array",
+          "description": "An array of email addresses for guest users.",
+          "items": {
+            "type": "string",
+            "format": "email"
+          }
+        }
+      },
+      "required": [
+        "emails"
+      ]
     }
   },
   "auth": {
@@ -252,6 +270,22 @@
             {
               "name": "analysisReportId",
               "description": "The unique ID of the analysis report."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/config/{configId}",
+        "definition": {
+          "entityName": "GuestList",
+          "schema": {
+            "$ref": "#/backend/entities/GuestList"
+          },
+          "description": "Stores global application configuration. The primary document is 'guests', which contains the list of read-only guest user emails.",
+          "params": [
+            {
+              "name": "configId",
+              "description": "The ID of the configuration document (e.g., 'guests')."
             }
           ]
         }

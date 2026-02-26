@@ -6,9 +6,9 @@
  *
  * Key Security Decisions:
  * - Private Data for Owners: A user can only read and write their own documents.
- * - Guest Access: A predefined list of guest emails is granted read-only (`get`, `list`)
- *   access to the `analysisReports` collection group, allowing them to view all reports
- *   across all users. Guests cannot write any data.
+ * - Guest Access: A list of guest emails, stored in /config/guests, is granted 
+ *   read-only (`get`, `list`) access to the `analysisReports` collection group, 
+ *   allowing them to view all reports across all users. Guests cannot write any data.
  * - User Enumeration Prevention: Listing the top-level `/users` collection is
  *   disallowed.
  */
@@ -29,15 +29,15 @@ service cloud.firestore {
     }
 
     /**
-     * Checks if the signed-in user's email is in the guest list.
-     * IMPORTANT: Add the Google account emails of your guests to this list.
-     * These users will have read-only access to all analysis reports.
+     * Checks if the signed-in user's email is in the guest list, which is
+     * dynamically fetched from the /config/guests document.
      */
     function isGuest() {
-      return isSignedIn() && request.auth.token.email in [
-        // Example: 'guest-viewer@example.com',
-        // Example: 'another-guest@gmail.com'
-      ];
+      let guestData = get(/databases/$(database)/documents/config/guests).data;
+      return isSignedIn() && 
+             guestData != null && 
+             'emails' in guestData &&
+             request.auth.token.email in guestData.emails;
     }
 
     function isExistingOwner(userId) {
@@ -99,7 +99,16 @@ service cloud.firestore {
 
     // This collection group rule allows guests to list all reports across all users.
     match /{path=**}/analysisReports/{reportId} {
-      allow list: if isGuest();
+      allow get, list: if isGuest();
+    }
+
+    // Rules for the global configuration document.
+    match /config/guests {
+      // Any signed-in user can read the guest list.
+      allow get: if isSignedIn();
+      // Only signed-in users who are NOT guests can write to the guest list.
+      // This prevents guests from promoting themselves or others.
+      allow create, update, write: if isSignedIn() && !isGuest();
     }
   }
 }
