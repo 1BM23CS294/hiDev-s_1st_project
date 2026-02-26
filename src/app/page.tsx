@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState, useEffect, useRef, useMemo } from 'react';
+import { useActionState, useState, useEffect, useRef, useMemo, useTransition } from 'react';
 import { useFormStatus } from 'react-dom';
 import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, Languages, Bot, DollarSign, Globe, Video, Clock, ArrowRight, ArrowLeft, Lightbulb, PenSquare, Flame, Sparkles, Fingerprint, Search, TrendingDown, AlertTriangle, GitCompareArrows, School, CaseSensitive, UserCheck, UserRound } from 'lucide-react';
 import { analyzeResume } from '@/app/actions';
@@ -88,6 +88,7 @@ export default function Home() {
   const [videoFileName, setVideoFileName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState('');
+  const [, startTransition] = useTransition();
 
   const formRef = useRef<HTMLFormElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null); 
@@ -182,7 +183,9 @@ export default function Home() {
     
     setSelectedCandidate(null);
     setIsSubmitting(true);
-    formAction(formData);
+    startTransition(() => {
+      formAction(formData);
+    });
     setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
   
