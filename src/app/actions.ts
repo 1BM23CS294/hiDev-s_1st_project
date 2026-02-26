@@ -36,22 +36,22 @@ const AnalyzeResumeSchema = z.object({
   analysisMode: z.enum(['normal', 'fresher', 'executive']).default('normal'),
 
   // Optional Analyses (Original)
-  predictSalary: z.coerce.boolean().default(false),
+  predictSalary: z.coerce.boolean().default(true),
   analyzeVideo: z.coerce.boolean().default(false),
   videoFile: fileSchema.refine(file => file.size < 50 * 1024 * 1024, 'Video file size must be less than 50MB.').optional(),
-  predictWorkLife: z.coerce.boolean().default(false),
-  findNetworking: z.coerce.boolean().default(false),
-  rewriteResume: z.coerce.boolean().default(false),
+  predictWorkLife: z.coerce.boolean().default(true),
+  findNetworking: z.coerce.boolean().default(true),
+  rewriteResume: z.coerce.boolean().default(true),
 
   // New Analysis Modules
-  roastResume: z.coerce.boolean().default(false),
-  confidenceBooster: z.coerce.boolean().default(false),
-  personalBrandCheck: z.coerce.boolean().default(false),
-  hiddenStrengthDiscovery: z.coerce.boolean().default(false),
-  careerRiskAssessment: z.coerce.boolean().default(false),
-  skillObsolescenceWarning: z.coerce.boolean().default(false),
-  resumeVersionControl: z.coerce.boolean().default(false),
-  internshipReadiness: z.coerce.boolean().default(false),
+  roastResume: z.coerce.boolean().default(true),
+  confidenceBooster: z.coerce.boolean().default(true),
+  personalBrandCheck: z.coerce.boolean().default(true),
+  hiddenStrengthDiscovery: z.coerce.boolean().default(true),
+  careerRiskAssessment: z.coerce.boolean().default(true),
+  skillObsolescenceWarning: z.coerce.boolean().default(true),
+  resumeVersionControl: z.coerce.boolean().default(true),
+  internshipReadiness: z.coerce.boolean().default(true),
 });
 
 
