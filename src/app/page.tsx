@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useEffect, useRef, useMemo } from 'react';
 import { useFormStatus } from 'react-dom';
-import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, Languages, Bot, DollarSign, Globe, Video, Clock, ArrowRight, ArrowLeft, Lightbulb, PenSquare, Eye } from 'lucide-react';
+import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, Languages, Bot, DollarSign, Globe, Video, Clock, ArrowRight, ArrowLeft, Lightbulb, PenSquare, Eye, ShieldCheck } from 'lucide-react';
 import { analyzeResume } from '@/app/actions';
 import type { AnalyzedCandidate } from '@/lib/types';
 import { Label } from '@/components/ui/label';
@@ -101,34 +101,34 @@ export default function Home() {
 
   const { data: guestConfigDoc, isLoading: isLoadingGuests } = useDoc(guestConfigRef);
 
-  // isGuest can be true, false, or undefined if the status isn't determined yet.
-  const isGuest = useMemo(() => {
-    // Undefined means we don't know yet.
+  const userRole = useMemo<'admin' | 'guest' | 'member' | 'loading'>(() => {
     if (isUserLoading || isLoadingGuests) {
-      return undefined;
+      return 'loading';
     }
-    // False means we know they are not a guest.
-    if (!user?.email || !guestConfigDoc?.emails) {
-      return false;
+    // This UID is from the firestore.rules file for the isAdmin() function.
+    if (user?.uid === '6fJoWzavlLcBvfLzrT8dWXzygMg1') {
+      return 'admin';
     }
-    // True means we know they are a guest.
-    return Object.keys(guestConfigDoc.emails).includes(user.email);
+    if (user?.email && guestConfigDoc?.emails && (user.email.toLowerCase() in guestConfigDoc.emails)) {
+      return 'guest';
+    }
+    return 'member';
   }, [user, isUserLoading, guestConfigDoc, isLoadingGuests]);
   
-  const historyTitle = isGuest ? 'Public Analysis Feed' : 'Analysis History';
+  const historyTitle = (userRole === 'admin' || userRole === 'guest') ? 'Public Analysis Feed' : 'Analysis History';
   const isGuestListFull = useMemo(() => (guestConfigDoc?.emails ? Object.keys(guestConfigDoc.emails).length >= 5 : false), [guestConfigDoc]);
 
   const selectedCurrency = useMemo(() => countries.find(c => c.value === selectedCountry)?.currency, [selectedCountry]);
 
   const reportsQuery = useMemoFirebase(() => {
-    if (!user || !firestore || isGuest === undefined) return null;
+    if (!user || !firestore || userRole === 'loading') return null;
     
-    if (isGuest) {
+    if (userRole === 'admin' || userRole === 'guest') {
         return query(collectionGroup(firestore, 'analysisReports'), orderBy('createdAt', 'desc'));
     }
     
     return query(collection(firestore, 'users', user.uid, 'analysisReports'), orderBy('createdAt', 'desc'));
-  }, [firestore, user, isGuest]);
+  }, [firestore, user, userRole]);
 
 
   const { data: savedReports, isLoading: isLoadingReports, error: reportsError } = useCollection(reportsQuery);
@@ -183,7 +183,7 @@ export default function Home() {
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (isGuest) {
+    if (userRole === 'guest') {
       toast({ title: 'Guest Mode', description: 'Guests cannot submit new analyses.', variant: 'destructive' });
       return;
     }
@@ -233,6 +233,7 @@ export default function Home() {
   };
 
   const handleAddGuest = () => {
+    if (!guestConfigRef) return;
     if (isGuestListFull) {
         toast({
             title: 'Guest List Full',
@@ -245,7 +246,6 @@ export default function Home() {
     const currentGuestEmails = guestConfigDoc?.emails ? Object.keys(guestConfigDoc.emails).map(e => e.toLowerCase()) : [];
 
     if (normalizedEmail && !currentGuestEmails.includes(normalizedEmail) && normalizedEmail.includes('@')) {
-      if (!guestConfigRef) return;
       setDoc(guestConfigRef, { emails: { [normalizedEmail]: true } }, { merge: true })
         .catch(() => {
           const permissionError = new FirestorePermissionError({
@@ -272,7 +272,7 @@ export default function Home() {
 
   const handleRemoveGuest = (emailToRemove: string) => {
     if (!guestConfigRef) return;
-    setDoc(guestConfigRef, { emails: { [emailToRemove]: deleteField() } }, { merge: true })
+    setDoc(guestConfigRef, { emails: { [emailToRemove.toLowerCase()]: deleteField() } }, { merge: true })
       .catch(() => {
         const permissionError = new FirestorePermissionError({
           path: guestConfigRef.path,
@@ -297,7 +297,12 @@ export default function Home() {
     return <WelcomeSplash />;
   };
 
-  if (isUserLoading || !user) {
+  if (isUserLoading) {
+    return <PageLoader />;
+  }
+
+  if (!user) {
+    redirect('/login');
     return <PageLoader />;
   }
 
@@ -322,9 +327,13 @@ export default function Home() {
                         </div>
                         <div className="pt-2 space-y-2">
                           <CardDescription>A multi-step AI-powered analysis of your candidates.</CardDescription>
-                          {isGuest ? (
+                          {userRole === 'guest' ? (
                             <Badge variant="secondary" className='border-amber-500/50 text-amber-400'>
                               <Eye className="mr-2 h-4 w-4" /> Guest Mode: Read-Only
+                            </Badge>
+                          ) : userRole === 'admin' ? (
+                            <Badge variant="destructive" className='border-red-500/50 text-red-400'>
+                                <ShieldCheck className="mr-2 h-4 w-4" /> Administrator Mode
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="border-primary/50 text-primary/90 font-normal">
@@ -335,7 +344,7 @@ export default function Home() {
                         </div>
                     </CardHeader>
                     <CardContent className="flex-grow pt-6">
-                        {isGuest === false ? (
+                        {(userRole === 'admin' || userRole === 'member') ? (
                           <form ref={formRef} onSubmit={handleFormSubmit} className="space-y-4">
                             <div className={cn("space-y-4", step !== 1 && "hidden")}>
                                   <h2 className='text-lg font-semibold text-primary'>Step 1: Core Information</h2>
@@ -412,7 +421,7 @@ export default function Home() {
                                   <SubmitButton isSubmitting={isSubmitting} step={step} setStep={setStep} />
                               </div>
                           </form>
-                        ) : isGuest === true ? (
+                        ) : userRole === 'guest' ? (
                           <div className="flex flex-col items-center justify-center text-center h-full p-8">
                             <Eye className="w-16 h-16 text-primary/50 mb-4" />
                             <h3 className="text-xl font-semibold">Guest Mode</h3>
@@ -435,7 +444,7 @@ export default function Home() {
                     </CardHeader>
                     <CardContent className="w-full flex-grow overflow-hidden">
                         <ScrollArea className="h-full pr-4 max-h-[500px]">
-                        {(isLoadingReports || isGuest === undefined) ? <div className='h-full flex items-center justify-center'><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : reportsError ? (
+                        {(isLoadingReports || userRole === 'loading') ? <div className='h-full flex items-center justify-center'><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : reportsError ? (
                             <div className='h-full flex flex-col items-center justify-center text-center p-4 text-destructive'>
                                 <p className="text-sm font-semibold">Error Loading Feed</p>
                                 <p className="text-xs break-words">{reportsError.message}</p>
@@ -463,7 +472,7 @@ export default function Home() {
                                                 <span className="text-sm text-muted-foreground">/100</span>
                                             </div>
                                         </button>
-                                        {user && c.userId === user.uid && (
+                                        {(user && c.userId === user.uid) && (
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
@@ -480,7 +489,7 @@ export default function Home() {
                             </ul>
                             ) : (
                             <div className='h-full flex flex-col items-center justify-center text-center p-4'>
-                                <p className="text-sm text-muted-foreground">{isGuest ? 'No public analyses found.' : 'Your past analyses will appear here.'}</p>
+                                <p className="text-sm text-muted-foreground">{ (userRole === 'admin' || userRole === 'guest') ? 'No public analyses found.' : 'Your past analyses will appear here.'}</p>
                             </div>
                             )}
                         </ScrollArea>
@@ -502,7 +511,7 @@ export default function Home() {
               <HowToUse />
             </div>
             
-            {isGuest === false && (
+            {userRole === 'admin' && (
             <div>
               <Card className="bg-black/20 border-primary/20 backdrop-blur-xl shadow-2xl shadow-primary/20">
                 <CardHeader>
