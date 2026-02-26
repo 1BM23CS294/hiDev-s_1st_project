@@ -29,6 +29,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { countries } from '@/lib/countries';
 import { Separator } from '@/components/ui/separator';
 import { HowToUse } from './components/how-to-use';
+import { Skeleton } from '@/components/ui/skeleton';
 
 function SubmitButton({ isSubmitting, step, setStep }: { isSubmitting: boolean; step: number; setStep: (step: number) => void; }) {
   const { pending } = useFormStatus();
