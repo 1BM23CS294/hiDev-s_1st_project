@@ -119,34 +119,34 @@ export async function analyzeResume(prevState: FormState, formData: FormData): P
     const resumeExperienceSummary = extractedInfo.summary || extractedInfo.experience.map(exp => `${exp.title} at ${exp.company}: ${exp.description}`).join('\n');
     const resumeFullTextForProfiling = `${extractedInfo.summary || ''}\n\nSkills: ${extractedInfo.skills.join(', ')}\n\nExperience:\n${resumeExperienceSummary}`;
 
-    // 2. Perform all selected analyses in parallel
-    const rewritePromises = shouldRewriteResume ? [
-        rewriteResume({ style: 'ats', summary: extractedInfo.summary, experience: extractedInfo.experience, skills: extractedInfo.skills }),
-        rewriteResume({ style: 'creative', summary: extractedInfo.summary, experience: extractedInfo.experience, skills: extractedInfo.skills }),
-        rewriteResume({ style: 'executive', summary: extractedInfo.summary, experience: extractedInfo.experience, skills: extractedInfo.skills }),
-    ] : [Promise.resolve(null), Promise.resolve(null), Promise.resolve(null)];
+    // 2. Perform analysis with score first.
+    const analysis = await generateResumeMatchScore({ resumeSkills: extractedInfo.skills, resumeExperience: resumeExperienceSummary, jobDescription });
+    if (!analysis) throw new Error('Core analysis failed to generate a score.');
 
-    const analysisPromises = [
-        // Core analyses
-        generateResumeMatchScore({ resumeSkills: extractedInfo.skills, resumeExperience: resumeExperienceSummary, jobDescription }),
-        generateHiringRecommendations({ parsedResume: {
-            name: extractedInfo.name,
-            email: extractedInfo.email,
-            skills: extractedInfo.skills,
-            experience: extractedInfo.experience,
-            education: extractedInfo.education,
-            summary: extractedInfo.summary,
-        }, jobDescription, overallScore: 0 }),
+    // 3. Perform all other analyses in parallel, now with the correct score for recommendations.
+    const allOtherPromises = [
+        generateHiringRecommendations({
+            parsedResume: {
+                name: extractedInfo.name,
+                email: extractedInfo.email,
+                skills: extractedInfo.skills,
+                experience: extractedInfo.experience,
+                education: extractedInfo.education,
+                summary: extractedInfo.summary,
+            },
+            jobDescription,
+            overallScore: analysis.overallScore, // Use the real score
+        }),
         generateCareerPersonalityProfile({ resumeSummary: resumeFullTextForProfiling }),
-        
-        // Original optional analyses
         predictSalary ? predictSalaryRange({ jobDescription, resumeSkills: extractedInfo.skills, resumeExperience: resumeExperienceSummary, country }) : Promise.resolve(null),
         (analyzeVideo && videoFile) ? analyzeVideoResume({ videoDataUri: await fileToDataUri(videoFile) }) : Promise.resolve(null),
         predictWorkLife ? predictWorkLifeBalance({ jobDescription, resumeExperience: resumeExperienceSummary }) : Promise.resolve(null),
         findNetworking ? findNetworkingOpportunities({ jobTitle: extractedInfo.experience[0]?.title || 'Professional', skills: extractedInfo.skills, location: country }) : Promise.resolve(null),
-        ...rewritePromises,
-        
-        // New optional analyses
+        ...(shouldRewriteResume ? [
+            rewriteResume({ style: 'ats', summary: extractedInfo.summary, experience: extractedInfo.experience, skills: extractedInfo.skills }),
+            rewriteResume({ style: 'creative', summary: extractedInfo.summary, experience: extractedInfo.experience, skills: extractedInfo.skills }),
+            rewriteResume({ style: 'executive', summary: extractedInfo.summary, experience: extractedInfo.experience, skills: extractedInfo.skills }),
+        ] : [Promise.resolve(null), Promise.resolve(null), Promise.resolve(null)]),
         shouldRoast ? roastResume({ resumeSummary: resumeFullTextForProfiling }) : Promise.resolve(null),
         shouldBoost ? confidenceBooster({ resumeSummary: resumeFullTextForProfiling }) : Promise.resolve(null),
         shouldCheckBrand ? personalBrandCheck({ resumeSummary: resumeFullTextForProfiling }) : Promise.resolve(null),
@@ -158,16 +158,13 @@ export async function analyzeResume(prevState: FormState, formData: FormData): P
     ];
 
     const [
-        // Core
-        analysis, recommendations, personalityProfile,
-        // Original
-        salaryPrediction, videoAnalysis, workLifeBalance, networking, atsRewrite, creativeRewrite, executiveRewrite,
-        // New
+        recommendations, personalityProfile,
+        salaryPrediction, videoAnalysis, workLifeBalance, networking,
+        atsRewrite, creativeRewrite, executiveRewrite,
         roast, confidenceReport, brandCheck, hiddenStrengths, riskAssessment, skillWarning, versionSuggestion, internshipReport,
-    ] = await Promise.all(analysisPromises);
+    ] = await Promise.all(allOtherPromises);
     
-    // Post-update recommendations with the actual score
-    recommendations.overallRecommendation = `Based on an overall match score of ${analysis.overallScore}%, ${recommendations.overallRecommendation}`;
+    if (!recommendations) throw new Error('Hiring recommendations failed to generate.');
 
     const result: AnalyzedCandidate = {
       id: crypto.randomUUID(),
