@@ -241,15 +241,17 @@ export default function Home() {
         });
         return;
     }
-    const currentGuestEmails = guestConfigDoc?.emails ? Object.keys(guestConfigDoc.emails) : [];
-    if (newGuestEmail && !currentGuestEmails.includes(newGuestEmail) && newGuestEmail.includes('@')) {
+    const normalizedEmail = newGuestEmail.trim().toLowerCase();
+    const currentGuestEmails = guestConfigDoc?.emails ? Object.keys(guestConfigDoc.emails).map(e => e.toLowerCase()) : [];
+
+    if (normalizedEmail && !currentGuestEmails.includes(normalizedEmail) && normalizedEmail.includes('@')) {
       if (!guestConfigRef) return;
-      setDoc(guestConfigRef, { emails: { [newGuestEmail]: true } }, { merge: true })
+      setDoc(guestConfigRef, { emails: { [normalizedEmail]: true } }, { merge: true })
         .catch(() => {
           const permissionError = new FirestorePermissionError({
             path: guestConfigRef.path,
             operation: 'update',
-            requestResourceData: { emails: `add ${newGuestEmail}` },
+            requestResourceData: { emails: `add ${normalizedEmail}` },
           });
           errorEmitter.emit('permission-error', permissionError);
         });
@@ -257,12 +259,12 @@ export default function Home() {
       setNewGuestEmail('');
       toast({
         title: 'Guest Added',
-        description: `${newGuestEmail} will now have guest access.`,
+        description: `${normalizedEmail} will now have guest access.`,
       });
     } else {
       toast({
-        title: 'Invalid Email',
-        description: 'Please enter a valid, unique email address.',
+        title: 'Invalid or Duplicate Email',
+        description: 'Please enter a valid, unique email address that is not already on the list.',
         variant: 'destructive',
       });
     }
