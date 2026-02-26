@@ -28,6 +28,7 @@ import { getScoreStyling } from '@/lib/theme';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { countries } from '@/lib/countries';
 import { Separator } from '@/components/ui/separator';
+import { HowToUse } from './components/how-to-use';
 
 function SubmitButton({ isSubmitting, step, setStep }: { isSubmitting: boolean; step: number; setStep: (step: number) => void; }) {
   const { pending } = useFormStatus();
@@ -369,6 +370,10 @@ export default function Home() {
                        </div>
                     </CardContent>
                 </Card>
+            </div>
+
+            <div>
+              <HowToUse />
             </div>
         </div>
     </div>

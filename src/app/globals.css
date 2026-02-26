@@ -73,3 +73,21 @@
     background-attachment: fixed;
   }
 }
+
+@layer utilities {
+  .flip-card {
+    perspective: 1000px;
+  }
+  .flip-card-inner {
+    transform-style: preserve-3d;
+    transition: transform 0.7s;
+  }
+  .flip-card-front,
+  .flip-card-back {
+    -webkit-backface-visibility: hidden; /* Safari */
+    backface-visibility: hidden;
+  }
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+}
