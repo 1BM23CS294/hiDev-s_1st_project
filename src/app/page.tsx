@@ -121,7 +121,7 @@ export default function Home() {
   }, [firestore, user, isGuest]);
 
 
-  const { data: savedReports, isLoading: isLoadingReports } = useCollection(reportsQuery);
+  const { data: savedReports, isLoading: isLoadingReports, error: reportsError } = useCollection(reportsQuery);
 
   const candidates = useMemo((): (AnalyzedCandidate & { firestoreId: string; userId: string; })[] => {
     if (!savedReports) return [];
@@ -418,7 +418,12 @@ export default function Home() {
                     </CardHeader>
                     <CardContent className="w-full flex-grow overflow-hidden">
                         <ScrollArea className="h-full pr-4 max-h-[500px]">
-                        {isLoadingReports ? <div className='h-full flex items-center justify-center'><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : candidates.length > 0 ? (
+                        {isLoadingReports ? <div className='h-full flex items-center justify-center'><Loader2 className="h-8 w-8 animate-spin text-primary" /></div> : reportsError ? (
+                            <div className='h-full flex flex-col items-center justify-center text-center p-4 text-destructive'>
+                                <p className="text-sm font-semibold">Error Loading Feed</p>
+                                <p className="text-xs break-words">{reportsError.message}</p>
+                            </div>
+                        ) : candidates.length > 0 ? (
                             <ul className="space-y-2">
                                 {candidates.map((c) => (
                                 <li key={c.id}>
