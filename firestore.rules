@@ -34,10 +34,14 @@ service cloud.firestore {
      * dynamically fetched from the /config/guests document.
      */
     function isGuest() {
+      // First, check if the guest list document exists.
+      if (!exists(/databases/$(database)/documents/config/guests)) {
+        return false;
+      }
       let guestData = get(/databases/$(database)/documents/config/guests).data;
-      return isSignedIn() && 
-             guestData != null && 
-             'emails' in guestData &&
+      // Check that the user is signed in, that guestData and the emails map exist, and the user's email is a key in the map.
+      return isSignedIn() &&
+             guestData.emails is map &&
              request.auth.token.email in guestData.emails;
     }
 
@@ -107,9 +111,9 @@ service cloud.firestore {
       allow delete: if isExistingOwner(userId);
     }
 
-    // This collection group rule allows guests to list all reports across all users.
+    // This collection group rule allows guests and the admin to list all reports across all users.
     match /{path=**}/analysisReports/{reportId} {
-      allow get, list: if isGuest();
+      allow get, list: if isGuest() || isAdmin();
     }
 
     // Rules for the global configuration document.
