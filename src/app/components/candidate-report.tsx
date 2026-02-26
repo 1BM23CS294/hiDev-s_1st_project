@@ -24,6 +24,14 @@ import {
   Calendar,
   Link as LinkIcon,
   PenSquare,
+  Flame,
+  Sparkles,
+  Fingerprint,
+  Search,
+  TrendingDown,
+  AlertTriangle,
+  GitCompareArrows,
+  School,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -51,11 +59,23 @@ function PerformanceMetric({ label, score, icon: Icon, explanation }: { label: s
 }
 
 export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
-  const { candidate, analysis, recommendations, salaryPrediction, personalityProfile, videoAnalysis, workLifeBalance, networking, resumeRewrite } = data;
+  const { 
+    candidate, analysis, recommendations, salaryPrediction, personalityProfile, 
+    videoAnalysis, workLifeBalance, networking, resumeRewrite,
+    roast, confidenceReport, brandCheck, hiddenStrengths, riskAssessment, skillWarning, versionSuggestion, internshipReport
+  } = data;
   const performanceMetrics = analysis.performanceMetrics;
   
   const activeTabs = [
     'overview', 'performance', 'recommendations',
+    roast ? 'roast' : null,
+    confidenceReport ? 'confidence' : null,
+    brandCheck ? 'brand' : null,
+    hiddenStrengths ? 'strengths' : null,
+    riskAssessment ? 'risk' : null,
+    skillWarning ? 'skills' : null,
+    versionSuggestion ? 'versioning' : null,
+    internshipReport ? 'internship' : null,
     videoAnalysis ? 'video' : null,
     salaryPrediction ? 'salary' : null,
     personalityProfile ? 'personality' : null,
@@ -83,10 +103,18 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
            </div>
       </div>
         <Tabs defaultValue="overview" className="w-full" activationMode='manual'>
-            <TabsList className={cn("grid w-full bg-black/20")} style={{ gridTemplateColumns: `repeat(${activeTabs.length}, minmax(0, 1fr))`}}>
+            <TabsList className="grid w-full bg-black/20" style={{ gridTemplateColumns: `repeat(${activeTabs.length}, minmax(0, 1fr))`}}>
                 {activeTabs.includes('overview') && <TabsTrigger value="overview">Overview</TabsTrigger>}
                 {activeTabs.includes('performance') && <TabsTrigger value="performance">Performance</TabsTrigger>}
                 {activeTabs.includes('recommendations') && <TabsTrigger value="recommendations">AI Insights</TabsTrigger>}
+                {activeTabs.includes('roast') && <TabsTrigger value="roast">Roast</TabsTrigger>}
+                {activeTabs.includes('confidence') && <TabsTrigger value="confidence">Confidence</TabsTrigger>}
+                {activeTabs.includes('brand') && <TabsTrigger value="brand">Brand</TabsTrigger>}
+                {activeTabs.includes('strengths') && <TabsTrigger value="strengths">Hidden Strengths</TabsTrigger>}
+                {activeTabs.includes('risk') && <TabsTrigger value="risk">Career Risk</TabsTrigger>}
+                {activeTabs.includes('skills') && <TabsTrigger value="skills">Skill Alert</TabsTrigger>}
+                {activeTabs.includes('versioning') && <TabsTrigger value="versioning">Versioning</TabsTrigger>}
+                {activeTabs.includes('internship') && <TabsTrigger value="internship">Internship</TabsTrigger>}
                 {activeTabs.includes('video') && <TabsTrigger value="video">Video</TabsTrigger>}
                 {activeTabs.includes('salary') && <TabsTrigger value="salary">Salary</TabsTrigger>}
                 {activeTabs.includes('personality') && <TabsTrigger value="personality">Personality</TabsTrigger>}
@@ -166,6 +194,200 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                 </Card>
             </div>
             </TabsContent>
+
+            {roast && <TabsContent value="roast" className="mt-6">
+                <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <Flame size={20} /> Resume Roast
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <Badge variant="destructive">{roast.roastLevel} Roast</Badge>
+                        <blockquote className="border-l-2 pl-6 italic">{roast.roast}</blockquote>
+                        <div>
+                            <h4 className='font-semibold mb-3 flex items-center gap-2'>Constructive Takeaways</h4>
+                            <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                                {roast.constructiveTakeaways.map((tip, i) => <li key={i}>{tip}</li>)}
+                            </ul>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>}
+
+            {confidenceReport && <TabsContent value="confidence" className="mt-6">
+                <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <Sparkles size={20} /> Confidence Booster
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="text-center p-4 rounded-lg bg-black/20">
+                            <p className="text-lg text-primary tracking-tight">{confidenceReport.empoweringStatement}</p>
+                        </div>
+                        <div>
+                            <h4 className='font-semibold mb-3'>Key Strengths</h4>
+                            <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                                {confidenceReport.keyStrengths.map((s, i) => <li key={i}>{s}</li>)}
+                            </ul>
+                        </div>
+                         <div>
+                            <h4 className='font-semibold mb-3'>Achievement Highlights</h4>
+                            <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                                {confidenceReport.achievementHighlights.map((h, i) => <li key={i}>{h}</li>)}
+                            </ul>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>}
+
+            {brandCheck && <TabsContent value="brand" className="mt-6">
+                <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <Fingerprint size={20} /> Personal Brand Consistency
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                         <div className="text-center p-6 rounded-lg bg-black/20 flex flex-col items-center justify-center">
+                            <p className="text-sm text-muted-foreground">Brand Consistency Score</p>
+                            <p className={cn("text-5xl font-bold tracking-tight my-2", getScoreStyling(brandCheck.consistencyScore).color)}>
+                                {brandCheck.consistencyScore}<span className='text-3xl text-foreground/50'>/100</span>
+                            </p>
+                        </div>
+                        <div>
+                            <h4 className='font-semibold mb-2'>Key Brand Themes Detected</h4>
+                             <div className="flex flex-wrap gap-2">
+                                {brandCheck.keyThemes.map((theme, i) => <Badge key={i} variant="secondary">{theme}</Badge>)}
+                            </div>
+                        </div>
+                        <div>
+                            <h4 className='font-semibold mb-3'>Suggestions for Improvement</h4>
+                            <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                                {brandCheck.suggestions.map((s, i) => <li key={i}>{s}</li>)}
+                            </ul>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>}
+            
+            {hiddenStrengths && <TabsContent value="strengths" className="mt-6">
+                <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <Search size={20} /> Hidden Strength Discovery
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        {hiddenStrengths.hiddenStrengths.map((item, i) => (
+                            <div key={i} className="pl-4 border-l-2 border-primary/50">
+                                <p className="font-bold">{item.strength}</p>
+                                <p className="text-sm text-muted-foreground mt-1"><strong>Evidence:</strong> {item.evidence}</p>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+            </TabsContent>}
+
+            {riskAssessment && <TabsContent value="risk" className="mt-6">
+                <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <TrendingDown size={20} /> Career Risk Assessment
+                        </CardTitle>
+                    </CardHeader>
+                     <CardContent className="space-y-6">
+                         <div className="text-center p-6 rounded-lg bg-black/20 flex flex-col items-center justify-center">
+                            <p className="text-sm text-muted-foreground">Automation Risk Score</p>
+                            <p className={cn("text-5xl font-bold tracking-tight my-2", getScoreStyling(100 - riskAssessment.riskScore).color)}>
+                                {riskAssessment.riskScore}<span className='text-3xl text-foreground/50'>/100</span>
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-1">Outlook: {riskAssessment.stabilityOutlook}</p>
+                        </div>
+                        <div>
+                            <h4 className='font-semibold mb-3'>Risk Mitigation Strategies</h4>
+                            <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                                {riskAssessment.mitigationStrategies.map((s, i) => <li key={i}>{s}</li>)}
+                            </ul>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>}
+
+            {skillWarning && <TabsContent value="skills" className="mt-6">
+                <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <AlertTriangle size={20} /> Skill Obsolescence Warning
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {skillWarning.warnings.length > 0 ? skillWarning.warnings.map((warning, i) => (
+                             <div key={i} className="p-3 bg-black/20 rounded-lg">
+                                <div className='flex justify-between items-center mb-2'>
+                                    <p className='font-semibold'>{warning.skill}</p>
+                                    <Badge variant={warning.riskLevel === 'High' ? 'destructive' : 'secondary'}>{warning.riskLevel} Risk</Badge>
+                                </div>
+                                <p className='text-xs text-muted-foreground'><strong>Suggestion:</strong> {warning.suggestion}</p>
+                            </div>
+                        )) : <p className='text-sm text-muted-foreground text-center py-4'>No at-risk skills detected.</p>}
+                    </CardContent>
+                </Card>
+            </TabsContent>}
+
+             {versionSuggestion && <TabsContent value="versioning" className="mt-6">
+                <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <GitCompareArrows size={20} /> Resume Versioning AI
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div>
+                            <h4 className='font-semibold mb-2'>Suggested Summary (for this job)</h4>
+                            <blockquote className="border-l-2 pl-6 italic text-sm">{versionSuggestion.suggestedVersionSummary}</blockquote>
+                        </div>
+                        <div>
+                            <h4 className='font-semibold mb-3'>Recommended Changes</h4>
+                            <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                                {versionSuggestion.changeLog.map((c, i) => <li key={i}>{c}</li>)}
+                            </ul>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>}
+
+            {internshipReport && <TabsContent value="internship" className="mt-6">
+                <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <School size={20} /> Internship Readiness
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="text-center p-6 rounded-lg bg-black/20 flex flex-col items-center justify-center">
+                            <p className="text-sm text-muted-foreground">Internship Readiness Score</p>
+                            <p className={cn("text-5xl font-bold tracking-tight my-2", getScoreStyling(internshipReport.readinessScore).color)}>
+                                {internshipReport.readinessScore}<span className='text-3xl text-foreground/50'>/100</span>
+                            </p>
+                        </div>
+                        <div>
+                            <h4 className='font-semibold mb-3'>Project Highlights for Applications</h4>
+                            <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                                {internshipReport.projectHighlights.map((p, i) => <li key={i}>{p}</li>)}
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className='font-semibold mb-3'>Feedback for Improvement</h4>
+                            <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                                {internshipReport.feedback.map((f, i) => <li key={i}>{f}</li>)}
+                            </ul>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>}
+
 
             {videoAnalysis && <TabsContent value="video" className='mt-6'>
                 <Card className='bg-black/20 border border-primary/20'>

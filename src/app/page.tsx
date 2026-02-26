@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useEffect, useRef, useMemo } from 'react';
 import { useFormStatus } from 'react-dom';
-import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, Languages, Bot, DollarSign, Globe, Video, Clock, ArrowRight, ArrowLeft, Lightbulb, PenSquare } from 'lucide-react';
+import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, Languages, Bot, DollarSign, Globe, Video, Clock, ArrowRight, ArrowLeft, Lightbulb, PenSquare, Flame, Sparkles, Fingerprint, Search, TrendingDown, AlertTriangle, GitCompareArrows, School, CaseSensitive, UserCheck, UserRound } from 'lucide-react';
 import { analyzeResume } from '@/app/actions';
 import type { AnalyzedCandidate } from '@/lib/types';
 import { Label } from '@/components/ui/label';
@@ -28,7 +28,8 @@ import { getScoreStyling } from '@/lib/theme';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { countries } from '@/lib/countries';
 import { Separator } from '@/components/ui/separator';
-import { HowToUse } from './components/how-to-use';
+import { FeatureCarousel } from './components/feature-carousel';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 function SubmitButton({ isSubmitting, step, setStep }: { isSubmitting: boolean; step: number; setStep: (step: number) => void; }) {
   const { pending } = useFormStatus();
@@ -94,11 +95,15 @@ export default function Home() {
   
   const selectedCurrency = useMemo(() => countries.find(c => c.value === selectedCountry)?.currency, [selectedCountry]);
 
-  const reportsQuery = useMemoFirebase(() => {
+  const reportsCollection = useMemoFirebase(() => {
     if (!user || !firestore) return null;
-    return query(collection(firestore, 'users', user.uid, 'analysisReports'), orderBy('createdAt', 'desc'));
+    return collection(firestore, 'users', user.uid, 'analysisReports');
   }, [firestore, user]);
-
+  
+  const reportsQuery = useMemoFirebase(() => {
+    if (!reportsCollection) return null;
+    return query(reportsCollection, orderBy('createdAt', 'desc'));
+  }, [reportsCollection]);
 
   const { data: savedReports, isLoading: isLoadingReports, error: reportsError } = useCollection(reportsQuery);
 
@@ -118,7 +123,7 @@ export default function Home() {
 
   useEffect(() => {
     if (isSubmitting) {
-        if (state.success && state.data && user) {
+        if (state.success && state.data && user && reportsCollection) {
           const newCandidate = state.data;
           
           const newReport = {
@@ -127,10 +132,9 @@ export default function Home() {
             reportJson: JSON.stringify(newCandidate),
           };
           
-          const reportsCollectionRef = collection(firestore, 'users', user.uid, 'analysisReports');
-          addDoc(reportsCollectionRef, newReport).catch((error) => {
+          addDoc(reportsCollection, newReport).catch((error) => {
              const permissionError = new FirestorePermissionError({
-                path: reportsCollectionRef.path,
+                path: reportsCollection.path,
                 operation: 'create',
                 requestResourceData: newReport,
             });
@@ -157,7 +161,7 @@ export default function Home() {
         }
         setIsSubmitting(false);
     }
-  }, [state, toast, isSubmitting, user, firestore]);
+  }, [state, toast, isSubmitting, user, firestore, reportsCollection]);
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -204,6 +208,7 @@ export default function Home() {
   };
 
   const handleSignOut = async () => {
+    if (!auth) return;
     await signOut(auth);
     toast({ title: "Signed Out" });
   };
@@ -288,43 +293,48 @@ export default function Home() {
                                 <div className={cn("space-y-6", step !== 2 && "hidden")}>
                                     <h2 className='text-lg font-semibold text-primary'>Step 2: Advanced Analysis</h2>
                                     
-                                    <div className="p-4 rounded-lg border border-border/50 bg-black/20 space-y-4">
-                                      <Label className='flex items-center gap-2 text-base'><Video size={18} /> AI Video Feedback <Badge variant="secondary" className="ml-2">Beta</Badge></Label>
-                                      <p className='text-sm text-muted-foreground'>Upload a video resume to get feedback on facial expressions, voice confidence, and more. (Optional, up to 50MB)</p>
-                                      <div className="flex items-center space-x-2">
-                                          <Checkbox id="analyze-video" name="analyzeVideo" />
-                                          <Label htmlFor="analyze-video" className='text-muted-foreground grow'>Enable Video Analysis</Label>
-                                      </div>
-                                      <Input id="video-file" name="videoFile" type="file" onChange={(e) => setVideoFileName(e.target.files?.[0]?.name || '')} className="hidden" accept="video/*"/>
-                                        <Button type="button" variant="outline" className="w-full bg-black/20 hover:bg-accent/50 border-border/50" onClick={(e) => (e.currentTarget.previousSibling as HTMLInputElement)?.click()}>
-                                            {videoFileName ? <span className="truncate text-primary">{videoFileName}</span> : 'Select a video file...'}
-                                        </Button>
-                                    </div>
-                                    
-                                    <div className="p-4 rounded-lg border border-border/50 bg-black/20 space-y-4">
-                                      <Label className='flex items-center gap-2 text-base'><Lightbulb size={18} /> Additional Insights</Label>
-                                      <p className='text-sm text-muted-foreground'>Select additional AI-powered reports to generate.</p>
-                                      <div className="flex items-center space-x-2">
-                                          <Checkbox id="predict-salary" name="predictSalary" defaultChecked={true} />
-                                          <Label htmlFor="predict-salary" className='flex items-center gap-2 text-muted-foreground grow'>
-                                              <DollarSign size={16} />
-                                              <span>Salary Prediction</span>
-                                              {selectedCurrency && (<Badge variant="outline" className="border-primary/50 text-primary/90 font-normal ml-auto">{selectedCurrency}</Badge>)}
-                                          </Label>
-                                      </div>
-                                      <div className="flex items-center space-x-2">
-                                          <Checkbox id="predict-work-life" name="predictWorkLife" defaultChecked={true} />
-                                          <Label htmlFor="predict-work-life" className='flex items-center gap-2 text-muted-foreground grow'><Clock size={16} />Work-Life Balance Predictor</Label>
-                                      </div>
-                                      <div className="flex items-center space-x-2">
-                                          <Checkbox id="find-networking" name="findNetworking" defaultChecked={true} />
-                                          <Label htmlFor="find-networking" className='flex items-center gap-2 text-muted-foreground grow'><Users size={16} />Networking Opportunity Finder</Label>
-                                      </div>
-                                      <div className="flex items-center space-x-2">
-                                          <Checkbox id="rewrite-resume" name="rewriteResume" defaultChecked={true} />
-                                          <Label htmlFor="rewrite-resume" className='flex items-center gap-2 text-muted-foreground grow'><PenSquare size={16} />Resume Rewriter</Label>
-                                      </div>
-                                    </div>
+                                     <Card className="p-4 border-border/50 bg-black/20">
+                                        <CardHeader className='p-0 pb-4'>
+                                             <CardTitle className='flex items-center gap-2 text-base'><CaseSensitive size={18}/> Analysis Mode</CardTitle>
+                                             <CardDescription className='text-sm text-muted-foreground'>Tailor the analysis for different career levels.</CardDescription>
+                                        </CardHeader>
+                                        <CardContent className='p-0'>
+                                            <RadioGroup name="analysisMode" defaultValue="normal" className="grid grid-cols-3 gap-4">
+                                                <div><RadioGroupItem value="normal" id="mode-normal" className="peer sr-only" /><Label htmlFor="mode-normal" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"><UserRound className="mb-3 h-6 w-6" />Normal</Label></div>
+                                                <div><RadioGroupItem value="fresher" id="mode-fresher" className="peer sr-only" /><Label htmlFor="mode-fresher" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"><School className="mb-3 h-6 w-6" />Fresher</Label></div>
+                                                <div><RadioGroupItem value="executive" id="mode-executive" className="peer sr-only" /><Label htmlFor="mode-executive" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"><UserCheck className="mb-3 h-6 w-6" />Executive</Label></div>
+                                            </RadioGroup>
+                                        </CardContent>
+                                    </Card>
+
+                                    <Card className="p-4 border-border/50 bg-black/20">
+                                        <CardHeader className='p-0 pb-4'>
+                                            <CardTitle className='flex items-center gap-2 text-base'><Lightbulb size={18} /> Standard Modules</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className='p-0 grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                                            <div className="flex items-center space-x-2"><Checkbox id="predict-salary" name="predictSalary" defaultChecked={true} /><Label htmlFor="predict-salary" className='text-muted-foreground'>Salary Prediction</Label></div>
+                                            <div className="flex items-center space-x-2"><Checkbox id="predict-work-life" name="predictWorkLife" defaultChecked={true} /><Label htmlFor="predict-work-life" className='text-muted-foreground'>Work-Life Balance</Label></div>
+                                            <div className="flex items-center space-x-2"><Checkbox id="find-networking" name="findNetworking" defaultChecked={true} /><Label htmlFor="find-networking" className='text-muted-foreground'>Networking Finder</Label></div>
+                                            <div className="flex items-center space-x-2"><Checkbox id="rewrite-resume" name="rewriteResume" defaultChecked={true} /><Label htmlFor="rewrite-resume" className='text-muted-foreground'>AI Resume Rewriter</Label></div>
+                                            <div className="col-span-full space-y-2 pt-2"><Label className='flex items-center gap-2 text-base'><Video size={18} /> AI Video Feedback <Badge variant="secondary" className="ml-2">Beta</Badge></Label><div className="flex items-center space-x-2"><Checkbox id="analyze-video" name="analyzeVideo" /><Label htmlFor="analyze-video" className='text-muted-foreground grow'>Enable Video Analysis (Optional, up to 50MB)</Label></div><Input id="video-file" name="videoFile" type="file" onChange={(e) => setVideoFileName(e.target.files?.[0]?.name || '')} className="hidden" accept="video/*"/><Button type="button" variant="outline" className="w-full bg-black/20 hover:bg-accent/50 border-border/50" onClick={(e) => (e.currentTarget.previousSibling as HTMLInputElement)?.click()}>{videoFileName ? <span className="truncate text-primary">{videoFileName}</span> : 'Select a video file...'}</Button></div>
+                                        </CardContent>
+                                    </Card>
+
+                                    <Card className="p-4 border-border/50 bg-black/20">
+                                        <CardHeader className='p-0 pb-4'>
+                                            <CardTitle className='flex items-center gap-2 text-base'><Sparkles size={18}/> New Analysis Modules</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className='p-0 grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                                             <div className="flex items-center space-x-2"><Checkbox id="roast-resume" name="roastResume" /><Label htmlFor="roast-resume" className='flex items-center gap-2 text-muted-foreground'><Flame size={16}/>Resume Roast</Label></div>
+                                             <div className="flex items-center space-x-2"><Checkbox id="confidence-booster" name="confidenceBooster" /><Label htmlFor="confidence-booster" className='flex items-center gap-2 text-muted-foreground'><Sparkles size={16}/>Confidence Booster</Label></div>
+                                             <div className="flex items-center space-x-2"><Checkbox id="personal-brand-check" name="personalBrandCheck" /><Label htmlFor="personal-brand-check" className='flex items-center gap-2 text-muted-foreground'><Fingerprint size={16}/>Personal Brand Check</Label></div>
+                                             <div className="flex items-center space-x-2"><Checkbox id="hidden-strength-discovery" name="hiddenStrengthDiscovery" /><Label htmlFor="hidden-strength-discovery" className='flex items-center gap-2 text-muted-foreground'><Search size={16}/>Hidden Strength Discovery</Label></div>
+                                             <div className="flex items-center space-x-2"><Checkbox id="career-risk-assessment" name="careerRiskAssessment" /><Label htmlFor="career-risk-assessment" className='flex items-center gap-2 text-muted-foreground'><TrendingDown size={16}/>Career Risk Assessment</Label></div>
+                                             <div className="flex items-center space-x-2"><Checkbox id="skill-obsolescence-warning" name="skillObsolescenceWarning" /><Label htmlFor="skill-obsolescence-warning" className='flex items-center gap-2 text-muted-foreground'><AlertTriangle size={16}/>Skill Obsolescence Warning</Label></div>
+                                             <div className="flex items-center space-x-2"><Checkbox id="resume-version-control" name="resumeVersionControl" /><Label htmlFor="resume-version-control" className='flex items-center gap-2 text-muted-foreground'><GitCompareArrows size={16}/>AI Resume Versioning</Label></div>
+                                             <div className="flex items-center space-x-2"><Checkbox id="internship-readiness" name="internshipReadiness" /><Label htmlFor="internship-readiness" className='flex items-center gap-2 text-muted-foreground'><School size={16}/>Internship Readiness Score</Label></div>
+                                        </CardContent>
+                                    </Card>
                                 </div>
                                   <Separator/>
                                   <div className="pt-2 flex gap-4">
@@ -409,11 +419,9 @@ export default function Home() {
             </div>
             
             <div className="lg:col-span-2">
-              <HowToUse />
+              <FeatureCarousel />
             </div>
         </div>
     </div>
   );
 }
-
-    

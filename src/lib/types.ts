@@ -7,7 +7,15 @@ import type {
   VideoAnalysisOutput,
   WorkLifeBalanceOutput,
   NetworkingOpportunitiesOutput,
-  RewriteResumeOutput
+  RewriteResumeOutput,
+  RoastResumeOutput,
+  ConfidenceBoosterOutput,
+  PersonalBrandCheckOutput,
+  HiddenStrengthDiscoveryOutput,
+  CareerRiskAssessmentOutput,
+  SkillObsolescenceWarningOutput,
+  ResumeVersionControlOutput,
+  InternshipReadinessOutput,
 } from '@/ai/flows';
 
 export type Candidate = ExtractResumeInformationOutput;
@@ -16,11 +24,22 @@ export type HiringRecommendations = GenerateHiringRecommendationsOutput;
 export type SalaryPredictionResult = PredictSalaryRangeOutput;
 export type CareerPersonalityProfile = GenerateCareerPersonalityProfileOutput;
 
-// New optional types
+// Original optional types
 export type { VideoAnalysisOutput } from '@/ai/flows';
 export type { WorkLifeBalanceOutput } from '@/ai/flows';
 export type { NetworkingOpportunitiesOutput } from '@/ai/flows';
 export type { RewriteResumeOutput } from '@/ai/flows';
+
+// New optional types
+export type { RoastResumeOutput } from '@/ai/flows';
+export type { ConfidenceBoosterOutput } from '@/ai/flows';
+export type { PersonalBrandCheckOutput } from '@/ai/flows';
+export type { HiddenStrengthDiscoveryOutput } from '@/ai/flows';
+export type { CareerRiskAssessmentOutput } from '@/ai/flows';
+export type { SkillObsolescenceWarningOutput } from '@/ai/flows';
+export type { ResumeVersionControlOutput } from '@/ai/flows';
+export type { InternshipReadinessOutput } from '@/ai/flows';
+
 
 export type AnalyzedCandidate = {
   id: string;
@@ -29,6 +48,7 @@ export type AnalyzedCandidate = {
   analysis: AnalysisResult;
   recommendations: HiringRecommendations;
   personalityProfile: CareerPersonalityProfile;
+  
   // Optional analysis results
   salaryPrediction?: SalaryPredictionResult;
   videoAnalysis?: VideoAnalysisOutput;
@@ -39,4 +59,14 @@ export type AnalyzedCandidate = {
     creative: RewriteResumeOutput;
     executive: RewriteResumeOutput;
   };
+  
+  // New analysis results
+  roast?: RoastResumeOutput;
+  confidenceReport?: ConfidenceBoosterOutput;
+  brandCheck?: PersonalBrandCheckOutput;
+  hiddenStrengths?: HiddenStrengthDiscoveryOutput;
+  riskAssessment?: CareerRiskAssessmentOutput;
+  skillWarning?: SkillObsolescenceWarningOutput;
+  versionSuggestion?: ResumeVersionControlOutput;
+  internshipReport?: InternshipReadinessOutput;
 };
