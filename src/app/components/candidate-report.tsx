@@ -12,6 +12,8 @@ import {
   User,
   GraduationCap,
   Briefcase,
+  DollarSign,
+  TrendingUp,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -38,7 +40,7 @@ function PerformanceMetric({ label, score, icon: Icon, explanation }: { label: s
 }
 
 export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
-  const { candidate, analysis, recommendations } = data;
+  const { candidate, analysis, recommendations, salaryPrediction } = data;
   const performanceMetrics = analysis.performanceMetrics;
 
   return (
@@ -59,11 +61,12 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
            </div>
       </div>
         <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-black/20">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="recommendations">AI Insights</TabsTrigger>
-            <TabsTrigger value="details">Resume Details</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-5 bg-black/20">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="performance">Performance</TabsTrigger>
+                <TabsTrigger value="recommendations">AI Insights</TabsTrigger>
+                <TabsTrigger value="salary">Salary</TabsTrigger>
+                <TabsTrigger value="details">Resume Details</TabsTrigger>
             </TabsList>
             <TabsContent value="overview" className="mt-6">
             <Card className='bg-black/20 border border-primary/20'>
@@ -132,6 +135,42 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                     </CardContent>
                 </Card>
             </div>
+            </TabsContent>
+             <TabsContent value="salary" className="mt-6">
+                <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <DollarSign size={20} /> Salary Prediction & Optimization
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="text-center p-4 rounded-lg bg-black/20">
+                            <p className="text-sm text-muted-foreground">Predicted Annual Salary Range (USD)</p>
+                            <p className="text-3xl sm:text-4xl font-bold text-primary tracking-tight">
+                                {`$${salaryPrediction.predictedMinSalary.toLocaleString()} - $${salaryPrediction.predictedMaxSalary.toLocaleString()}`}
+                            </p>
+                        </div>
+                        <div className='space-y-4'>
+                            <div>
+                                <div className="flex items-center justify-between mb-1">
+                                    <p className="text-sm font-medium text-muted-foreground">Prediction Confidence</p>
+                                    <p className="text-sm font-semibold">{salaryPrediction.confidenceScore}%</p>
+                                </div>
+                                <Progress value={salaryPrediction.confidenceScore} />
+                            </div>
+                             <div>
+                                <h4 className='font-semibold mb-2'>Basis for Prediction</h4>
+                                <p className='text-sm text-muted-foreground'>{salaryPrediction.explanation}</p>
+                            </div>
+                        </div>
+                         <div>
+                            <h4 className='font-semibold mb-3 flex items-center gap-2'><TrendingUp size={16} /> Salary Optimization Tips</h4>
+                            <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                                {salaryPrediction.optimizationTips.map((tip, i) => <li key={i}>{tip}</li>)}
+                            </ul>
+                        </div>
+                    </CardContent>
+                </Card>
             </TabsContent>
             <TabsContent value="details" className="mt-6">
                 <Card className='bg-black/20 border border-primary/20'>

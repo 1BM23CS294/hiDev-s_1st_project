@@ -4,6 +4,7 @@ import {
   extractResumeInformation,
   generateHiringRecommendations,
   generateResumeMatchScore,
+  predictSalaryRange,
 } from '@/ai/flows';
 import type { AnalyzedCandidate } from '@/lib/types';
 import { z } from 'zod';
@@ -51,9 +52,10 @@ export async function analyzeResume(prevState: FormState, formData: FormData): P
     if (!extractedInfo || !extractedInfo.name) {
        throw new Error('Could not parse resume. Please ensure the file is a valid resume (PDF, DOCX) and is not corrupted.');
     }
+    
+    const resumeExperienceSummary = extractedInfo.summary || extractedInfo.experience.map(exp => `${exp.title} at ${exp.company}: ${exp.description}`).join('\n');
 
     // 3. Generate match score and detailed analysis
-    const resumeExperienceSummary = extractedInfo.summary || extractedInfo.experience.map(exp => `${exp.title} at ${exp.company}: ${exp.description}`).join('\n');
     const analysis = await generateResumeMatchScore({
       resumeSkills: extractedInfo.skills,
       resumeExperience: resumeExperienceSummary,
@@ -83,6 +85,14 @@ export async function analyzeResume(prevState: FormState, formData: FormData): P
       jobDescription,
       overallScore: analysis.overallScore,
     });
+    
+    // 5. Predict Salary
+    const salaryPrediction = await predictSalaryRange({
+        jobDescription,
+        resumeSkills: extractedInfo.skills,
+        resumeExperience: resumeExperienceSummary,
+    });
+
 
     const result: AnalyzedCandidate = {
       id: crypto.randomUUID(),
@@ -90,6 +100,7 @@ export async function analyzeResume(prevState: FormState, formData: FormData): P
       candidate: extractedInfo,
       analysis,
       recommendations,
+      salaryPrediction,
     };
 
     return { success: true, message: 'Analysis complete.', data: result };
