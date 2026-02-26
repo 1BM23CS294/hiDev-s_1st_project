@@ -199,7 +199,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   }
 
   return (
-    <Card className="w-full max-w-md bg-black/50 border border-primary/30 shadow-2xl shadow-primary/10 backdrop-blur-lg">
+    <Card className="w-full max-w-md bg-black/20 border border-primary/20 shadow-2xl shadow-primary/20 backdrop-blur-xl">
         <CardHeader className="text-center">
             <CardTitle className="text-2xl">{title}</CardTitle>
             <CardDescription>{description}</CardDescription>
