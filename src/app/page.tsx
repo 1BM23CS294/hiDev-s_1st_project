@@ -282,10 +282,11 @@ export default function Home() {
                                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                           <div className="space-y-2">
                                               <Label htmlFor="resume-file" className='flex items-center gap-2'><UploadCloud size={16} /> Resume Upload</Label>
-                                              <Input id="resume-file" name="resumeFile" type="file" multiple onChange={(e) => setResumeFileNames(e.target.files ? Array.from(e.target.files).map(f => f.name) : [])} className="hidden" required accept=".pdf,.doc,.docx,.txt,.rtf,.png,.jpg,.jpeg"/>
+                                              <Input id="resume-file" name="resumeFile" type="file" multiple onChange={(e) => setResumeFileNames(e.target.files ? Array.from(e.target.files).map(f => f.name) : [])} className="hidden" required />
                                               <Button type="button" variant="outline" className="w-full bg-black/20 hover:bg-accent/50 border-border/50" onClick={(e) => (e.currentTarget.previousSibling as HTMLInputElement)?.click()}>
                                                   {resumeFileNames.length > 0 ? <span className="truncate text-primary">{resumeFileNames.length} resume(s) selected</span> : 'Select resume(s)...'}
                                               </Button>
+                                              <p className="text-xs text-muted-foreground text-center">Supports any resume format (PDF, DOCX, images, etc.). The AI is designed to handle diverse layouts.</p>
                                           </div>
                                           <div className="space-y-2">
                                               <Label htmlFor="country" className='flex items-center gap-2'><Globe size={16} /> Country</Label>
@@ -303,7 +304,7 @@ export default function Home() {
                                      <Card className="p-4 border-border/50 bg-black/20">
                                         <CardHeader className='p-0 pb-4'>
                                              <CardTitle className='flex items-center gap-2 text-base'><CaseSensitive size={18}/> Analysis Mode</CardTitle>
-                                             <CardDescription className='text-sm text-muted-foreground'>Tailor the analysis for different career levels.</CardDescription>
+                                             <CardDescription className='text-sm text-muted-foreground'>Optimize the analysis by selecting the candidate's career level. The AI will adjust its evaluation criteria accordingly.</CardDescription>
                                         </CardHeader>
                                         <CardContent className='p-0'>
                                             <RadioGroup name="analysisMode" defaultValue="normal" className="grid grid-cols-3 gap-4">
