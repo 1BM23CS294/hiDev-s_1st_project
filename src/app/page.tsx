@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo, useTransition } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useActionState } from 'react';
-import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, Languages, Bot, DollarSign, Globe, Video, Clock, ArrowRight, ArrowLeft, Lightbulb, PenSquare, Flame, Sparkles, Fingerprint, Search, TrendingDown, AlertTriangle, GitCompareArrows, School, CaseSensitive, UserCheck, UserRound, Rocket, Medal, Files, Filter, FileJson, Ship } from 'lucide-react';
+import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, Languages, Bot, ArrowRight, ArrowLeft, Lightbulb, Info, Rocket, Medal, Files, Filter, FileJson, Ship } from 'lucide-react';
 import type { AnalyzedCandidate } from '@/lib/types';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,7 +18,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth, useUser, useFirestore, useCollection, useMemoFirebase, FirestorePermissionError, errorEmitter } from '@/firebase';
-import { redirect } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import { PageLoader } from '@/components/ui/page-loader';
 import { signOut } from 'firebase/auth';
 import { collection, query, orderBy, addDoc, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
@@ -34,6 +34,8 @@ import { RoadmapCard } from './components/roadmap-card';
 import { FeedbackCard } from './components/feedback-card';
 import { analyzeResume } from '@/app/actions';
 import { GuestAccessCard } from './components/guest-access-card';
+import { CaseSensitive, Flame, GitCompareArrows, Globe, School, Search, Sparkles, TrendingDown, UserCheck, UserRound, Video, Fingerprint, AlertTriangle } from 'lucide-react';
+import Link from 'next/link';
 
 
 function SubmitButton({ step, setStep, isPending }: { step: number; setStep: (step: number) => void; isPending: boolean; }) {
@@ -79,7 +81,7 @@ export default function Home() {
 
   const initialState = { success: false, message: '', data: undefined, errors: undefined };
   const [formState, formAction] = useActionState(analyzeResume, initialState);
-  const [isPending, startTransition] = useTransition();
+  let isPending = false; // useTransition is not available in server components
 
   const formRef = useRef<HTMLFormElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -87,6 +89,7 @@ export default function Home() {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
+  const isAnonymous = user?.isAnonymous;
 
   const reportsCollection = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -230,14 +233,26 @@ export default function Home() {
         return;
     }
     if(formRef.current) formRef.current.dataset.submitted = "true";
-    startTransition(() => {
-        formAction(formData);
-    });
+    // @ts-ignore
+    formAction(formData);
   }
 
   return (
      <div className="relative min-h-svh w-full p-4 md:p-6 lg:p-8">
         <div className="max-w-screen-2xl mx-auto space-y-8">
+            {isAnonymous && (
+                <Card className="bg-amber-900/30 border-amber-500/50 text-amber-200">
+                    <CardHeader className="!pb-4">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                            <CardTitle className="flex items-center gap-2"><Info size={18}/>Demo Mode</CardTitle>
+                            <Button variant="link" asChild className="p-0 h-auto text-amber-200"><Link href="/signup">Sign Up For a Free Account to Save Work</Link></Button>
+                        </div>
+                        <CardDescription className="text-amber-300/80 pt-1">
+                            You are using a temporary guest account. Your analysis history will be lost when you close this session.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+            )}
             <Card className="bg-black/20 border-primary/20 backdrop-blur-xl shadow-2xl shadow-primary/20">
                 <CardHeader className="bg-black/20 rounded-t-lg">
                     <div className="flex items-center justify-between">
@@ -438,7 +453,7 @@ export default function Home() {
                             </ScrollArea>
                         </CardContent>
                     </Card>
-                    <GuestAccessCard />
+                    {!isAnonymous && <GuestAccessCard />}
                     <FeedbackCard />
                 </div>
             </div>

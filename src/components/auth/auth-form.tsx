@@ -10,6 +10,7 @@ import {
   signInWithPopup,
   AuthError,
   updateProfile,
+  signInAnonymously,
 } from 'firebase/auth';
 import { getDoc, setDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useAuth, useUser, useFirestore } from '@/firebase';
@@ -97,6 +98,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!auth || !firestore) return;
     setIsLoading(true);
     setError(null);
     try {
@@ -143,6 +145,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   };
 
   const handleGoogleSignIn = async () => {
+    if (!auth || !firestore) return;
     setIsLoading(true);
     setError(null);
     try {
@@ -190,6 +193,24 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     }
   };
   
+  const handleAnonymousSignIn = async () => {
+    if(!auth) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      await signInAnonymously(auth);
+      toast({
+        title: 'Signed In as Guest',
+        description: "You're now using a temporary guest account.",
+      });
+      router.push('/');
+    } catch (err) {
+      handleAuthError(err as AuthError);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (isUserLoading || user) {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -265,10 +286,17 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
                 </Button>
             </form>
             <Separator className="my-6" />
-            <Button variant="outline" onClick={handleGoogleSignIn} disabled={isLoading} className="w-full bg-transparent hover:bg-accent/50">
-                <GoogleIcon />
-                Sign in with Google
-            </Button>
+            <div className='space-y-4'>
+                <Button variant="outline" onClick={handleGoogleSignIn} disabled={isLoading} className="w-full bg-transparent hover:bg-accent/50">
+                    <GoogleIcon />
+                    {mode === 'login' ? 'Sign in with Google' : 'Sign up with Google'}
+                </Button>
+                {mode === 'login' && (
+                    <Button variant="secondary" onClick={handleAnonymousSignIn} disabled={isLoading} className="w-full">
+                        Continue as Guest (Demo)
+                    </Button>
+                )}
+            </div>
         </CardContent>
         <CardFooter className="flex-col">
             <p className="text-sm text-muted-foreground">
