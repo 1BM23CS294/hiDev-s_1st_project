@@ -128,7 +128,9 @@ const extractResumeInformationFlow = ai.defineFlow(
     outputSchema: ExtractResumeInformationOutputSchema,
   },
   async input => {
-    const {output} = await extractResumeInformationPrompt(input);
+    const {output} = await extractResumeInformationPrompt(input, {
+      model: 'googleai/gemini-1.5-pro',
+    });
     if (!output) {
       throw new Error('Failed to extract resume information.');
     }
