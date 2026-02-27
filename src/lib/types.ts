@@ -19,6 +19,16 @@ import type {
   RankCandidateOutput,
   BenchmarkCandidateOutput,
   GetHiringFunnelInsightsOutput,
+  GithubSkillExtractionOutput,
+  LinkedInSyncOutput,
+  KaggleProfileAnalysisOutput,
+  PortfolioWebsiteAnalysisOutput,
+  FreelanceProfileOptimizationOutput,
+  GlassdoorCompanyFitOutput,
+  InterviewExperienceOutput,
+  ResumeExportOutput,
+  CountryResumeRulesOutput,
+  VisaSponsorshipOutput,
 } from '@/ai/flows';
 
 export type Candidate = ExtractResumeInformationOutput;
@@ -45,6 +55,18 @@ export type { InternshipReadinessOutput } from '@/ai/flows';
 export type { RankCandidateOutput } from '@/ai/flows';
 export type { BenchmarkCandidateOutput } from '@/ai/flows';
 export type { GetHiringFunnelInsightsOutput } from '@/ai/flows';
+
+// Integrations & International
+export type { GithubSkillExtractionOutput } from '@/ai/flows';
+export type { LinkedInSyncOutput } from '@/ai/flows';
+export type { KaggleProfileAnalysisOutput } from '@/ai/flows';
+export type { PortfolioWebsiteAnalysisOutput } from '@/ai/flows';
+export type { FreelanceProfileOptimizationOutput } from '@/ai/flows';
+export type { GlassdoorCompanyFitOutput } from '@/ai/flows';
+export type { InterviewExperienceOutput } from '@/ai/flows';
+export type { ResumeExportOutput } from '@/ai/flows';
+export type { CountryResumeRulesOutput } from '@/ai/flows';
+export type { VisaSponsorshipOutput } from '@/ai/flows';
 
 
 export type AnalyzedCandidate = {
@@ -80,4 +102,16 @@ export type AnalyzedCandidate = {
   ranking?: RankCandidateOutput;
   benchmark?: BenchmarkCandidateOutput;
   funnelInsights?: GetHiringFunnelInsightsOutput;
+  
+  // Integrations & International
+  githubSkills?: GithubSkillExtractionOutput;
+  linkedinSync?: LinkedInSyncOutput;
+  kaggleAnalysis?: KaggleProfileAnalysisOutput;
+  portfolioAnalysis?: PortfolioWebsiteAnalysisOutput;
+  freelanceOptimization?: FreelanceProfileOptimizationOutput;
+  glassdoorFit?: GlassdoorCompanyFitOutput;
+  interviewExperience?: InterviewExperienceOutput;
+  resumeExports?: ResumeExportOutput;
+  countryRules?: CountryResumeRulesOutput;
+  visaSponsorship?: VisaSponsorshipOutput;
 };

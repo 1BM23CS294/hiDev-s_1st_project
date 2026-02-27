@@ -34,6 +34,15 @@ import {
   School,
   Medal,
   Filter,
+  Github,
+  Linkedin,
+  Globe,
+  FileJson,
+  Building2,
+  Laptop,
+  MessageSquare,
+  FileText,
+  Ship,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -60,17 +69,35 @@ function PerformanceMetric({ label, score, icon: Icon, explanation }: { label: s
     )
 }
 
+function StarRating({ rating, max = 5 }: { rating: number; max?: number }) {
+  return (
+    <div className="flex items-center">
+      {Array.from({ length: max }, (_, i) => (
+        <svg key={i} className={cn("w-5 h-5", i < Math.round(rating) ? "text-yellow-400" : "text-gray-300")} fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.368 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.368-2.448a1 1 0 00-1.175 0l-3.368 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L2.24 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69L9.049 2.927z" />
+        </svg>
+      ))}
+    </div>
+  );
+}
+
 export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
   const { 
     candidate, analysis, recommendations, salaryPrediction, personalityProfile, 
     videoAnalysis, workLifeBalance, networking, resumeRewrite,
     roast, confidenceReport, brandCheck, hiddenStrengths, riskAssessment, skillWarning, versionSuggestion, internshipReport,
     ranking, benchmark, funnelInsights,
+    githubSkills, linkedinSync, kaggleAnalysis, portfolioAnalysis, freelanceOptimization, glassdoorFit, interviewExperience, resumeExports, countryRules, visaSponsorship
   } = data;
   const performanceMetrics = analysis.performanceMetrics;
   
   const activeTabs = [
     'overview', 'performance', 'recommendations',
+    githubSkills ? 'github' : null,
+    linkedinSync ? 'linkedin' : null,
+    glassdoorFit ? 'glassdoor' : null,
+    interviewExperience ? 'interview' : null,
+    portfolioAnalysis ? 'portfolio' : null,
     roast ? 'roast' : null,
     confidenceReport ? 'confidence' : null,
     brandCheck ? 'brand' : null,
@@ -88,6 +115,11 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
     workLifeBalance ? 'worklife' : null,
     networking ? 'networking' : null,
     resumeRewrite ? 'rewrite' : null,
+    freelanceOptimization ? 'freelance' : null,
+    kaggleAnalysis ? 'kaggle' : null,
+    countryRules ? 'global' : null,
+    visaSponsorship ? 'visa' : null,
+    resumeExports ? 'export' : null,
     'details'
   ].filter(Boolean) as string[];
 
@@ -113,6 +145,11 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                 {activeTabs.includes('overview') && <TabsTrigger value="overview">Overview</TabsTrigger>}
                 {activeTabs.includes('performance') && <TabsTrigger value="performance">Performance</TabsTrigger>}
                 {activeTabs.includes('recommendations') && <TabsTrigger value="recommendations">AI Insights</TabsTrigger>}
+                {activeTabs.includes('github') && <TabsTrigger value="github">GitHub</TabsTrigger>}
+                {activeTabs.includes('linkedin') && <TabsTrigger value="linkedin">LinkedIn</TabsTrigger>}
+                {activeTabs.includes('glassdoor') && <TabsTrigger value="glassdoor">Glassdoor</TabsTrigger>}
+                {activeTabs.includes('interview') && <TabsTrigger value="interview">Interview</TabsTrigger>}
+                {activeTabs.includes('portfolio') && <TabsTrigger value="portfolio">Portfolio</TabsTrigger>}
                 {activeTabs.includes('roast') && <TabsTrigger value="roast">Roast</TabsTrigger>}
                 {activeTabs.includes('confidence') && <TabsTrigger value="confidence">Confidence</TabsTrigger>}
                 {activeTabs.includes('brand') && <TabsTrigger value="brand">Brand</TabsTrigger>}
@@ -130,6 +167,11 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                 {activeTabs.includes('worklife') && <TabsTrigger value="worklife">Work-Life</TabsTrigger>}
                 {activeTabs.includes('networking') && <TabsTrigger value="networking">Networking</TabsTrigger>}
                 {activeTabs.includes('rewrite') && <TabsTrigger value="rewrite">Rewrite</TabsTrigger>}
+                {activeTabs.includes('freelance') && <TabsTrigger value="freelance">Freelance</TabsTrigger>}
+                {activeTabs.includes('kaggle') && <TabsTrigger value="kaggle">Kaggle</TabsTrigger>}
+                {activeTabs.includes('global') && <TabsTrigger value="global">Global Rules</TabsTrigger>}
+                {activeTabs.includes('visa') && <TabsTrigger value="visa">Visa</TabsTrigger>}
+                {activeTabs.includes('export') && <TabsTrigger value="export">Export</TabsTrigger>}
                 {activeTabs.includes('details') && <TabsTrigger value="details">Resume Details</TabsTrigger>}
             </TabsList>
             
@@ -203,6 +245,286 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                 </Card>
             </div>
             </TabsContent>
+            
+            {githubSkills && <TabsContent value="github" className="mt-6">
+                <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <Github size={20} /> GitHub Profile Analysis
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
+                            <div className="p-4 bg-black/20 rounded-lg">
+                                <p className="text-3xl font-bold">{githubSkills.followers}</p>
+                                <p className="text-xs text-muted-foreground">Followers</p>
+                            </div>
+                            <div className="p-4 bg-black/20 rounded-lg">
+                                <p className="text-3xl font-bold">{githubSkills.contributionStreak}</p>
+                                <p className="text-xs text-muted-foreground">Current Streak</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 className='font-semibold mb-2'>Top Languages</h4>
+                            <div className='space-y-2'>
+                            {githubSkills.topLanguages.map(lang => (
+                                <div key={lang.language}>
+                                    <div className="flex justify-between mb-1 text-sm">
+                                        <span>{lang.language}</span>
+                                        <span>{lang.percentage}%</span>
+                                    </div>
+                                    <Progress value={lang.percentage} />
+                                </div>
+                            ))}
+                            </div>
+                        </div>
+                        <div>
+                            <h4 className='font-semibold mb-2'>Inferred Skills</h4>
+                             <div className="flex flex-wrap gap-2">
+                                {githubSkills.extractedSkills.map((skill, i) => <Badge key={i} variant="secondary">{skill}</Badge>)}
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>}
+
+            {linkedinSync && <TabsContent value="linkedin" className="mt-6">
+                 <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <Linkedin size={20} /> LinkedIn Profile Sync
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <blockquote className="border-l-2 pl-6 italic">{linkedinSync.profileHeadline}</blockquote>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                            <div className="p-4 bg-black/20 rounded-lg">
+                                <p className="text-2xl font-bold">{linkedinSync.connectionsCount}</p>
+                                <p className="text-xs text-muted-foreground">Connections</p>
+                            </div>
+                            <div className="p-4 bg-black/20 rounded-lg">
+                                <p className="text-2xl font-bold">{linkedinSync.profileStrength}</p>
+                                <p className="text-xs text-muted-foreground">Profile Strength</p>
+                            </div>
+                             <div className="p-4 bg-black/20 rounded-lg">
+                                <p className="text-2xl font-bold">{linkedinSync.recommendationCount}</p>
+                                <p className="text-xs text-muted-foreground">Recommendations</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>}
+
+             {glassdoorFit && <TabsContent value="glassdoor" className="mt-6">
+                 <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <Building2 size={20} /> Glassdoor Company Fit
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
+                            <div className="p-4 bg-black/20 rounded-lg text-center">
+                                <p className="text-xs text-muted-foreground">Overall</p>
+                                <div className="flex items-center justify-center gap-1">
+                                    <span className="text-2xl font-bold">{glassdoorFit.overallRating.toFixed(1)}</span>
+                                    <StarRating rating={glassdoorFit.overallRating} />
+                                </div>
+                            </div>
+                            <div className="p-4 bg-black/20 rounded-lg text-center">
+                                <p className="text-xs text-muted-foreground">Culture & Values</p>
+                                 <div className="flex items-center justify-center gap-1">
+                                    <span className="text-2xl font-bold">{glassdoorFit.cultureAndValuesRating.toFixed(1)}</span>
+                                    <StarRating rating={glassdoorFit.cultureAndValuesRating} />
+                                </div>
+                            </div>
+                            <div className="p-4 bg-black/20 rounded-lg text-center">
+                                <p className="text-xs text-muted-foreground">Work/Life Balance</p>
+                                 <div className="flex items-center justify-center gap-1">
+                                    <span className="text-2xl font-bold">{glassdoorFit.workLifeBalanceRating.toFixed(1)}</span>
+                                    <StarRating rating={glassdoorFit.workLifeBalanceRating} />
+                                </div>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <h4 className='font-semibold mb-2 flex items-center gap-2 text-green-400'><CheckCircle2 size={16}/> Common Pros</h4>
+                                <ul className="list-disc pl-5 space-y-1 text-sm text-foreground/80">
+                                    {glassdoorFit.pros.map((pro, i) => <li key={i}>{pro}</li>)}
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 className='font-semibold mb-2 flex items-center gap-2 text-amber-400'><ShieldAlert size={16}/> Common Cons</h4>
+                                <ul className="list-disc pl-5 space-y-1 text-sm text-foreground/80">
+                                    {glassdoorFit.cons.map((con, i) => <li key={i}>{con}</li>)}
+                                </ul>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>}
+
+            {interviewExperience && <TabsContent value="interview" className="mt-6">
+                <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <MessageSquare size={20} /> Aggregated Interview Experience
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div>
+                            <h4 className='font-semibold mb-2'>Common Process & Experiences</h4>
+                            <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                                {interviewExperience.aggregatedExperiences.map((exp, i) => <li key={i}>{exp}</li>)}
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className='font-semibold mb-2'>Frequently Asked Questions</h4>
+                            <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                                {interviewExperience.commonQuestions.map((q, i) => <li key={i}>{q}</li>)}
+                            </ul>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>}
+
+            {portfolioAnalysis && <TabsContent value="portfolio" className="mt-6">
+                <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <Laptop size={20} /> Portfolio Website Analysis
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <Card className="p-4 bg-black/20">
+                                <CardTitle className="text-sm font-medium mb-2">SEO Score</CardTitle>
+                                <CircularProgress value={portfolioAnalysis.seoScore} size={120} strokeWidth={8} />
+                            </Card>
+                             <Card className="p-4 bg-black/20">
+                                <CardTitle className="text-sm font-medium mb-2">Accessibility Score</CardTitle>
+                                <CircularProgress value={portfolioAnalysis.accessibilityScore} size={120} strokeWidth={8} />
+                            </Card>
+                        </div>
+                        <div className='flex items-center justify-around text-sm'>
+                            <div className='flex items-center gap-2'>
+                                {portfolioAnalysis.hasContactForm ? <CheckCircle2 className="text-green-400"/> : <ShieldAlert className="text-red-400"/>}
+                                Contact Form Detected
+                            </div>
+                             <div className='flex items-center gap-2'>
+                                {portfolioAnalysis.isMobileFriendly ? <CheckCircle2 className="text-green-400"/> : <ShieldAlert className="text-red-400"/>}
+                                Mobile Friendly
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>}
+            
+            {freelanceOptimization && <TabsContent value="freelance" className="mt-6">
+                <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <TrendingUp size={20} /> Freelance Profile Optimization
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="text-center p-6 rounded-lg bg-black/20 flex flex-col items-center justify-center">
+                            <p className="text-sm text-muted-foreground">Profile Completeness Score</p>
+                            <p className={cn("text-5xl font-bold tracking-tight my-2", getScoreStyling(freelanceOptimization.profileCompleteness).color)}>
+                                {freelanceOptimization.profileCompleteness}<span className='text-3xl text-foreground/50'>/100</span>
+                            </p>
+                        </div>
+                        <div>
+                            <h4 className='font-semibold mb-3'>Optimization Tips</h4>
+                            <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                                {freelanceOptimization.optimizationTips.map((tip, i) => <li key={i}>{tip}</li>)}
+                            </ul>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>}
+
+            {kaggleAnalysis && <TabsContent value="kaggle" className="mt-6">
+                <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <BrainCircuit size={20} /> Kaggle Profile Analysis
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                        <div className="p-4 bg-black/20 rounded-lg">
+                            <p className="text-3xl font-bold">{kaggleAnalysis.competitionsRank}</p>
+                            <p className="text-xs text-muted-foreground">Competitions Rank</p>
+                        </div>
+                        <div className="p-4 bg-black/20 rounded-lg">
+                            <p className="text-3xl font-bold">{kaggleAnalysis.notebooksCount}</p>
+                            <p className="text-xs text-muted-foreground">Notebooks</p>
+                        </div>
+                        <div className="p-4 bg-black/20 rounded-lg">
+                            <p className="text-3xl font-bold">{kaggleAnalysis.datasetsCount}</p>
+                            <p className="text-xs text-muted-foreground">Datasets</p>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>}
+            
+            {countryRules && <TabsContent value="global" className="mt-6">
+                <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <Globe size={20} /> Resume Rules for {countryRules.countryName}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                            {countryRules.keyRules.map((rule, i) => <li key={i}>{rule}</li>)}
+                        </ul>
+                    </CardContent>
+                </Card>
+            </TabsContent>}
+            
+            {visaSponsorship && <TabsContent value="visa" className="mt-6">
+                <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <Ship size={20} /> Visa Sponsorship Readiness
+                        </CardTitle>
+                    </CardHeader>
+                     <CardContent className="space-y-6">
+                        <div className="text-center p-6 rounded-lg bg-black/20 flex flex-col items-center justify-center">
+                            <p className="text-sm text-muted-foreground">Sponsorship Likelihood Score</p>
+                            <p className={cn("text-5xl font-bold tracking-tight my-2", getScoreStyling(visaSponsorship.readinessScore).color)}>
+                                {visaSponsorship.readinessScore}<span className='text-3xl text-foreground/50'>/100</span>
+                            </p>
+                        </div>
+                        <div>
+                           <h4 className='font-semibold mb-2'>Explanation</h4>
+                           <p className='text-sm text-muted-foreground'>{visaSponsorship.explanation}</p>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>}
+            
+            {resumeExports && <TabsContent value="export" className="mt-6">
+                <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary">
+                            <FileJson size={20} /> Export Resume
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {resumeExports.exportFormats.map((format, i) => (
+                            <div key={i} className="p-3 bg-black/20 rounded-lg flex justify-between items-center">
+                                <div>
+                                    <p className='font-semibold'>{format.formatName}</p>
+                                    <p className='text-xs text-muted-foreground'>{format.description}</p>
+                                </div>
+                                <Button variant="ghost" size="sm" asChild><Link href={format.downloadUrl} target="_blank"><LinkIcon size={14} /> Download</Link></Button>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+            </TabsContent>}
 
             {roast && <TabsContent value="roast" className="mt-6">
                 <Card className='bg-black/20 border border-primary/20'>
