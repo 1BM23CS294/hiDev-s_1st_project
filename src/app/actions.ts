@@ -29,7 +29,7 @@ const fileSchema = z.instanceof(File).refine(file => file.size > 0, 'A file is r
 
 const AnalyzeResumeSchema = z.object({
   jobDescription: z.string().min(50, 'Job description must be at least 50 characters.'),
-  resumeFile: fileSchema.refine(file => file.size < 5 * 1024 * 1024, 'Resume file size must be less than 5MB.'),
+  resumeFiles: z.array(fileSchema.refine(file => file.size < 5 * 1024 * 1024, 'Each resume file size must be less than 5MB.')).min(1, 'At least one resume is required.'),
   country: z.string().min(2, 'Please select a country.'),
   
   // Analysis Mode
@@ -58,51 +58,40 @@ const AnalyzeResumeSchema = z.object({
 type FormState = {
   success: boolean;
   message: string;
-  data?: AnalyzedCandidate;
+  data?: AnalyzedCandidate[];
   errors?: {
     jobDescription?: string[];
-    resumeFile?: string[];
+    resumeFiles?: string[];
     country?: string[];
     videoFile?: string[];
     _form?: string[];
   };
 };
 
-export async function analyzeResume(prevState: FormState, formData: FormData): Promise<FormState> {
-  const validatedFields = AnalyzeResumeSchema.safeParse(Object.fromEntries(formData.entries()));
+async function _analyzeSingleResume(
+    resumeFile: File, 
+    jobDescription: string, 
+    country: string, 
+    options: Omit<z.infer<typeof AnalyzeResumeSchema>, 'resumeFiles' | 'jobDescription' | 'country'>
+): Promise<AnalyzedCandidate> {
+    const {
+        analysisMode,
+        predictSalary,
+        analyzeVideo,
+        videoFile,
+        predictWorkLife,
+        findNetworking,
+        rewriteResume: shouldRewriteResume,
+        roastResume: shouldRoast,
+        confidenceBooster: shouldBoost,
+        personalBrandCheck: shouldCheckBrand,
+        hiddenStrengthDiscovery: shouldDiscoverStrengths,
+        careerRiskAssessment: shouldAssessRisk,
+        skillObsolescenceWarning: shouldWarnSkills,
+        resumeVersionControl: shouldVersion,
+        internshipReadiness: shouldAssessInternship,
+    } = options;
 
-  if (!validatedFields.success) {
-    return {
-      success: false,
-      message: "Validation failed.",
-      errors: validatedFields.error.flatten().fieldErrors,
-    };
-  }
-
-  const { 
-    jobDescription, 
-    resumeFile, 
-    country,
-    analysisMode,
-    // Original optional analyses
-    predictSalary,
-    analyzeVideo,
-    videoFile,
-    predictWorkLife,
-    findNetworking,
-    rewriteResume: shouldRewriteResume,
-    // New optional analyses
-    roastResume: shouldRoast,
-    confidenceBooster: shouldBoost,
-    personalBrandCheck: shouldCheckBrand,
-    hiddenStrengthDiscovery: shouldDiscoverStrengths,
-    careerRiskAssessment: shouldAssessRisk,
-    skillObsolescenceWarning: shouldWarnSkills,
-    resumeVersionControl: shouldVersion,
-    internshipReadiness: shouldAssessInternship,
-  } = validatedFields.data;
-
-  try {
     const fileToDataUri = async (file: File) => {
         const fileBuffer = await file.arrayBuffer();
         return `data:${file.type};base64,${Buffer.from(fileBuffer).toString('base64')}`;
@@ -118,11 +107,11 @@ export async function analyzeResume(prevState: FormState, formData: FormData): P
     } catch (e) {
         console.error("Error during extractResumeInformation:", e);
         // This is a critical failure point. Provide a detailed error message.
-        throw new Error("The AI failed to read the resume. The file may be corrupted, password-protected, or in an unsupported format. Please try another file.");
+        throw new Error(`The AI failed to read the resume '${resumeFile.name}'. The file may be corrupted, password-protected, or in an unsupported format. Please try another file.`);
     }
 
     if (!extractedInfo || !extractedInfo.name) {
-       throw new Error('Could not parse resume. The AI could not find key details like the candidate\'s name. Please ensure the file is a valid and clearly structured resume.');
+       throw new Error(`Could not parse resume '${resumeFile.name}'. The AI could not find key details like the candidate's name. Please ensure the file is a valid and clearly structured resume.`);
     }
     
     const resumeExperienceSummary = extractedInfo.summary || extractedInfo.experience.map(exp => `${exp.title} at ${exp.company}: ${exp.description}`).join('\n');
@@ -202,8 +191,53 @@ export async function analyzeResume(prevState: FormState, formData: FormData): P
       versionSuggestion: versionSuggestion || undefined,
       internshipReport: internshipReport || undefined,
     };
+    return result;
+}
 
-    return { success: true, message: 'Analysis complete.', data: result };
+
+export async function analyzeResume(prevState: FormState, formData: FormData): Promise<FormState> {
+  
+  const dataToValidate = {
+    jobDescription: formData.get('jobDescription'),
+    country: formData.get('country'),
+    analysisMode: formData.get('analysisMode'),
+    predictSalary: formData.get('predictSalary'),
+    analyzeVideo: formData.get('analyzeVideo'),
+    videoFile: formData.get('videoFile'),
+    predictWorkLife: formData.get('predictWorkLife'),
+    findNetworking: formData.get('findNetworking'),
+    rewriteResume: formData.get('rewriteResume'),
+    roastResume: formData.get('roastResume'),
+    confidenceBooster: formData.get('confidenceBooster'),
+    personalBrandCheck: formData.get('personalBrandCheck'),
+    hiddenStrengthDiscovery: formData.get('hiddenStrengthDiscovery'),
+    careerRiskAssessment: formData.get('careerRiskAssessment'),
+    skillObsolescenceWarning: formData.get('skillObsolescenceWarning'),
+    resumeVersionControl: formData.get('resumeVersionControl'),
+    internshipReadiness: formData.get('internshipReadiness'),
+    resumeFiles: formData.getAll('resumeFile').filter(f => f instanceof File && f.size > 0),
+  };
+  
+  const validatedFields = AnalyzeResumeSchema.safeParse(dataToValidate);
+
+  if (!validatedFields.success) {
+    return {
+      success: false,
+      message: "Validation failed.",
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  const { resumeFiles, jobDescription, country, ...options } = validatedFields.data;
+
+  try {
+    const analysisPromises = resumeFiles.map(resumeFile => 
+      _analyzeSingleResume(resumeFile, jobDescription, country, options)
+    );
+    const results = await Promise.all(analysisPromises);
+    
+    return { success: true, message: `${results.length} resumes analyzed successfully.`, data: results };
+
   } catch (error) {
     console.error(error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred during analysis.';

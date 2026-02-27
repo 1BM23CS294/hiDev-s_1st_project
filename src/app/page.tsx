@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState, useEffect, useRef, useMemo } from 'react';
+import { useActionState, useState, useEffect, useRef, useMemo, useTransition } from 'react';
 import { useFormStatus } from 'react-dom';
 import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, Languages, Bot, DollarSign, Globe, Video, Clock, ArrowRight, ArrowLeft, Lightbulb, PenSquare, Flame, Sparkles, Fingerprint, Search, TrendingDown, AlertTriangle, GitCompareArrows, School, CaseSensitive, UserCheck, UserRound, Rocket, Medal, Files, Filter } from 'lucide-react';
 import { analyzeResume } from '@/app/actions';
@@ -63,7 +63,7 @@ function SubmitButton({ step, setStep }: { step: number; setStep: (step: number)
 const initialState: {
   success: boolean;
   message: string;
-  data?: AnalyzedCandidate;
+  data?: AnalyzedCandidate[];
   errors?: any;
 } = {
   success: false,
@@ -82,10 +82,11 @@ function getInitials(name: string) {
 }
 
 export default function Home() {
-  const [state, formAction, isPending] = useActionState(analyzeResume, initialState);
+  const [state, formAction] = useActionState(analyzeResume, initialState);
+  const [isPending, startTransition] = useTransition();
   const [step, setStep] = useState(1);
   const [selectedCandidate, setSelectedCandidate] = useState<AnalyzedCandidate | null>(null);
-  const [resumeFileName, setResumeFileName] = useState('');
+  const [resumeFileNames, setResumeFileNames] = useState<string[]>([]);
   const [videoFileName, setVideoFileName] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('');
 
@@ -126,50 +127,49 @@ export default function Home() {
 
   // This effect handles the result of the form action.
   useEffect(() => {
-    // When the action becomes pending, clear the previous result and scroll to the results area.
-    if (isPending) {
-      setSelectedCandidate(null);
-      resultsRef.current?.scrollIntoView({ behavior: 'smooth' });
-      return; // Don't process state changes while pending
-    }
-
-    // Don't run on initial render
-    if (state.message === '') {
+    // Don't run on initial render or while pending
+    if (isPending || state.message === '') {
       return;
     }
 
     if (state.success && state.data && user && reportsCollection) {
-      const newCandidate = state.data;
+      const newCandidates = state.data;
+      if (newCandidates.length === 0) return;
       
-      const newReport = {
-        userId: user.uid,
-        createdAt: serverTimestamp(),
-        reportJson: JSON.stringify(newCandidate),
-      };
-      
-      addDoc(reportsCollection, newReport).catch((error) => {
-          const permissionError = new FirestorePermissionError({
-            path: reportsCollection.path,
-            operation: 'create',
-            requestResourceData: newReport,
+      const addPromises = newCandidates.map(candidate => {
+        const newReport = {
+          userId: user.uid,
+          createdAt: serverTimestamp(),
+          reportJson: JSON.stringify(candidate),
+        };
+        return addDoc(reportsCollection, newReport).catch((error) => {
+            const permissionError = new FirestorePermissionError({
+              path: reportsCollection.path,
+              operation: 'create',
+              requestResourceData: newReport,
+          });
+          errorEmitter.emit('permission-error', permissionError);
         });
-        errorEmitter.emit('permission-error', permissionError);
       });
 
-      setSelectedCandidate(newCandidate);
-      toast({
-        title: "Analysis Complete",
-        description: `${newCandidate.candidate.name}'s resume has been analyzed.`,
-        variant: "default",
+      Promise.all(addPromises).then(() => {
+        toast({
+            title: "Analysis Complete",
+            description: `${newCandidates.length} resume(s) have been analyzed.`,
+            variant: "default",
+        });
       });
+      
+      setSelectedCandidate(newCandidates[newCandidates.length - 1]);
       formRef.current?.reset();
-      setResumeFileName('');
+      setResumeFileNames([]);
       setVideoFileName('');
       setStep(1);
+
     } else if (!state.success) {
       const errorDescription = 
         state.errors?._form?.[0] ||
-        state.errors?.resumeFile?.[0] ||
+        state.errors?.resumeFiles?.[0] ||
         state.errors?.jobDescription?.[0] ||
         state.errors?.country?.[0] ||
         state.errors?.videoFile?.[0] ||
@@ -182,6 +182,14 @@ export default function Home() {
       });
     }
   }, [state, isPending, user, firestore, reportsCollection, toast]);
+
+  const handleFormAction = (formData: FormData) => {
+    startTransition(() => {
+      setSelectedCandidate(null);
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth' });
+      formAction(formData);
+    });
+  };
 
   const handleDeleteReport = (reportId: string, ownerId: string) => {
     if(!user || !firestore || user.uid !== ownerId) return;
@@ -265,7 +273,7 @@ export default function Home() {
                             </div>
                         </CardHeader>
                         <CardContent className="flex-grow pt-6">
-                            <form ref={formRef} action={formAction} className="space-y-4">
+                            <form ref={formRef} action={handleFormAction} className="space-y-4">
                                 <div className={cn("space-y-4", step !== 1 && "hidden")}>
                                       <h2 className='text-lg font-semibold text-primary'>Step 1: Core Information</h2>
                                       <div className="space-y-2">
@@ -275,9 +283,9 @@ export default function Home() {
                                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                           <div className="space-y-2">
                                               <Label htmlFor="resume-file" className='flex items-center gap-2'><UploadCloud size={16} /> Resume Upload</Label>
-                                              <Input id="resume-file" name="resumeFile" type="file" onChange={(e) => setResumeFileName(e.target.files?.[0]?.name || '')} className="hidden" required accept=".pdf,.doc,.docx"/>
+                                              <Input id="resume-file" name="resumeFile" type="file" multiple onChange={(e) => setResumeFileNames(e.target.files ? Array.from(e.target.files).map(f => f.name) : [])} className="hidden" required accept=".pdf,.doc,.docx"/>
                                               <Button type="button" variant="outline" className="w-full bg-black/20 hover:bg-accent/50 border-border/50" onClick={(e) => (e.currentTarget.previousSibling as HTMLInputElement)?.click()}>
-                                                  {resumeFileName ? <span className="truncate text-primary">{resumeFileName}</span> : 'Select a resume file...'}
+                                                  {resumeFileNames.length > 0 ? <span className="truncate text-primary">{resumeFileNames.length} resume(s) selected</span> : 'Select resume(s)...'}
                                               </Button>
                                           </div>
                                           <div className="space-y-2">
