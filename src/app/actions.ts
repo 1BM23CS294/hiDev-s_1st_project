@@ -119,9 +119,9 @@ async function _analyzeSingleResume(
         teamBenchmarking,
         hiringFunnelInsights,
         // International
-        getResumeExports,
-        getCountryRules,
-        assessVisa,
+        getResumeExports: shouldGetResumeExports,
+        getCountryRules: shouldGetCountryRules,
+        assessVisa: shouldAssessVisa,
     } = options;
 
     const fileToDataUri = async (file: File) => {
@@ -203,9 +203,9 @@ async function _analyzeSingleResume(
         hiringFunnelInsights ? getHiringFunnelInsights({ jobDescription }) : Promise.resolve(null),
 
         // International & Export
-        getResumeExports ? getResumeExports({ resumeData: JSON.stringify(extractedInfo) }) : Promise.resolve(null),
-        getCountryRules ? getCountryResumeRules({ country }) : Promise.resolve(null),
-        assessVisa ? assessVisaSponsorship({ country, jobTitle: extractedInfo.experience[0]?.title || 'Engineer', skills: extractedInfo.skills }) : Promise.resolve(null),
+        shouldGetResumeExports ? getResumeExports({ resumeData: JSON.stringify(extractedInfo) }) : Promise.resolve(null),
+        shouldGetCountryRules ? getCountryResumeRules({ country }) : Promise.resolve(null),
+        shouldAssessVisa ? assessVisaSponsorship({ country, jobTitle: extractedInfo.experience[0]?.title || 'Engineer', skills: extractedInfo.skills }) : Promise.resolve(null),
     ];
 
     // 4. Await all promises
