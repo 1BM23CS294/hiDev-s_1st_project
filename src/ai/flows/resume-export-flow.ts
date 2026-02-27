@@ -38,22 +38,24 @@ const getResumeExportsFlow = ai.defineFlow(
   },
   async (input) => {
     await new Promise(resolve => setTimeout(resolve, 250)); // Simulate processing time
+    // Using valid data URIs for empty files to satisfy the schema validation (z.string().url())
+    // and provide a better mock download experience.
     return {
       exportFormats: [
         {
           formatName: "Standard PDF",
           description: "A universally compatible PDF document.",
-          downloadUrl: "#",
+          downloadUrl: "data:application/pdf;base64,",
         },
         {
           formatName: "Europass XML",
           description: "Standardized format for applying for jobs in Europe.",
-          downloadUrl: "#",
+          downloadUrl: "data:application/xml;base64,",
         },
         {
             formatName: "JSON Resume",
             description: "An open-source standard for developers.",
-            downloadUrl: "#",
+            downloadUrl: "data:application/json;base64,",
         }
       ],
     };
