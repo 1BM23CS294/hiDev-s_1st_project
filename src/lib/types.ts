@@ -16,6 +16,9 @@ import type {
   SkillObsolescenceWarningOutput,
   ResumeVersionControlOutput,
   InternshipReadinessOutput,
+  RankCandidateOutput,
+  BenchmarkCandidateOutput,
+  GetHiringFunnelInsightsOutput,
 } from '@/ai/flows';
 
 export type Candidate = ExtractResumeInformationOutput;
@@ -39,6 +42,9 @@ export type { CareerRiskAssessmentOutput } from '@/ai/flows';
 export type { SkillObsolescenceWarningOutput } from '@/ai/flows';
 export type { ResumeVersionControlOutput } from '@/ai/flows';
 export type { InternshipReadinessOutput } from '@/ai/flows';
+export type { RankCandidateOutput } from '@/ai/flows';
+export type { BenchmarkCandidateOutput } from '@/ai/flows';
+export type { GetHiringFunnelInsightsOutput } from '@/ai/flows';
 
 
 export type AnalyzedCandidate = {
@@ -69,4 +75,9 @@ export type AnalyzedCandidate = {
   skillWarning?: SkillObsolescenceWarningOutput;
   versionSuggestion?: ResumeVersionControlOutput;
   internshipReport?: InternshipReadinessOutput;
+
+  // Enterprise results
+  ranking?: RankCandidateOutput;
+  benchmark?: BenchmarkCandidateOutput;
+  funnelInsights?: GetHiringFunnelInsightsOutput;
 };

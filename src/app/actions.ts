@@ -18,6 +18,9 @@ import {
   skillObsolescenceWarning,
   resumeVersionControl,
   internshipReadiness,
+  rankCandidate,
+  benchmarkCandidate,
+  getHiringFunnelInsights,
 } from '@/ai/flows';
 import type {
   AnalyzedCandidate,
@@ -52,6 +55,11 @@ const AnalyzeResumeSchema = z.object({
   skillObsolescenceWarning: z.coerce.boolean().default(true),
   resumeVersionControl: z.coerce.boolean().default(true),
   internshipReadiness: z.coerce.boolean().default(true),
+
+  // Enterprise Modules
+  candidateRanking: z.coerce.boolean().default(false),
+  teamBenchmarking: z.coerce.boolean().default(false),
+  hiringFunnelInsights: z.coerce.boolean().default(false),
 });
 
 
@@ -90,6 +98,9 @@ async function _analyzeSingleResume(
         skillObsolescenceWarning: shouldWarnSkills,
         resumeVersionControl: shouldVersion,
         internshipReadiness: shouldAssessInternship,
+        candidateRanking,
+        teamBenchmarking,
+        hiringFunnelInsights,
     } = options;
 
     const fileToDataUri = async (file: File) => {
@@ -128,7 +139,7 @@ async function _analyzeSingleResume(
                 name: extractedInfo.name,
                 email: extractedInfo.email,
                 skills: extractedInfo.skills,
-                experience: extractedInfo.experience,
+                experience: extractedInfo.experience.map(e => ({...e, description: e.description || ''})),
                 education: extractedInfo.education,
                 summary: extractedInfo.summary,
             },
@@ -153,6 +164,9 @@ async function _analyzeSingleResume(
         shouldWarnSkills ? skillObsolescenceWarning({ skills: extractedInfo.skills }) : Promise.resolve(null),
         shouldVersion ? resumeVersionControl({ resumeSummary: extractedInfo.summary || '', jobDescription }) : Promise.resolve(null),
         (shouldAssessInternship || analysisMode === 'fresher') ? internshipReadiness({ resumeSummary: resumeFullTextForProfiling }) : Promise.resolve(null),
+        candidateRanking ? rankCandidate({ overallScore: analysis.overallScore }) : Promise.resolve(null),
+        teamBenchmarking ? benchmarkCandidate({ skills: extractedInfo.skills }) : Promise.resolve(null),
+        hiringFunnelInsights ? getHiringFunnelInsights({ jobDescription }) : Promise.resolve(null),
     ];
 
     const [
@@ -160,6 +174,7 @@ async function _analyzeSingleResume(
         salaryPrediction, videoAnalysis, workLifeBalance, networking,
         atsRewrite, creativeRewrite, executiveRewrite,
         roast, confidenceReport, brandCheck, hiddenStrengths, riskAssessment, skillWarning, versionSuggestion, internshipReport,
+        ranking, benchmark, funnelInsights,
     ] = await Promise.all(allOtherPromises);
     
     if (!recommendations) throw new Error('Hiring recommendations failed to generate.');
@@ -190,6 +205,10 @@ async function _analyzeSingleResume(
       skillWarning: skillWarning || undefined,
       versionSuggestion: versionSuggestion || undefined,
       internshipReport: internshipReport || undefined,
+      // Enterprise results
+      ranking: ranking || undefined,
+      benchmark: benchmark || undefined,
+      funnelInsights: funnelInsights || undefined,
     };
     return result;
 }
@@ -216,6 +235,9 @@ export async function analyzeResume(prevState: FormState, formData: FormData): P
     resumeVersionControl: formData.get('resumeVersionControl'),
     internshipReadiness: formData.get('internshipReadiness'),
     resumeFiles: formData.getAll('resumeFile').filter(f => f instanceof File && f.size > 0),
+    candidateRanking: formData.get('candidateRanking'),
+    teamBenchmarking: formData.get('teamBenchmarking'),
+    hiringFunnelInsights: formData.get('hiringFunnelInsights'),
   };
   
   const validatedFields = AnalyzeResumeSchema.safeParse(dataToValidate);

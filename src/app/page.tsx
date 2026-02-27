@@ -83,7 +83,7 @@ function getInitials(name: string) {
 
 export default function Home() {
   const [state, formAction] = useActionState(analyzeResume, initialState);
-  const [isPending, startTransition] = useTransition();
+  const [isFormPending, startTransition] = useTransition();
   const [step, setStep] = useState(1);
   const [selectedCandidate, setSelectedCandidate] = useState<AnalyzedCandidate | null>(null);
   const [resumeFileNames, setResumeFileNames] = useState<string[]>([]);
@@ -127,10 +127,8 @@ export default function Home() {
 
   // This effect handles the result of the form action.
   useEffect(() => {
-    // Don't run on initial render or while pending
-    if (isPending || state.message === '') {
-      return;
-    }
+    // This effect now only handles the *result* of the action.
+    if (state.message === '') return; // Don't run on initial render
 
     if (state.success && state.data && user && reportsCollection) {
       const newCandidates = state.data;
@@ -160,6 +158,7 @@ export default function Home() {
         });
       });
       
+      // Select the last candidate from the new batch
       setSelectedCandidate(newCandidates[newCandidates.length - 1]);
       formRef.current?.reset();
       setResumeFileNames([]);
@@ -181,15 +180,8 @@ export default function Home() {
         variant: "destructive",
       });
     }
-  }, [state, isPending, user, firestore, reportsCollection, toast]);
+  }, [state]); // Only depends on the `state` from `useActionState`
 
-  const handleFormAction = (formData: FormData) => {
-    startTransition(() => {
-      setSelectedCandidate(null);
-      resultsRef.current?.scrollIntoView({ behavior: 'smooth' });
-      formAction(formData);
-    });
-  };
 
   const handleDeleteReport = (reportId: string, ownerId: string) => {
     if(!user || !firestore || user.uid !== ownerId) return;
@@ -225,9 +217,19 @@ export default function Home() {
       setSelectedCandidate(candidate);
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
+  
+  const handleFormAction = (formData: FormData) => {
+      startTransition(() => {
+        // UI updates that should happen immediately when the form is submitted
+        setSelectedCandidate(null);
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth' });
+        // The actual form action logic
+        formAction(formData);
+      });
+  };
 
   const renderMainPanelContent = () => {
-    if (isPending) {
+    if (isFormPending) {
       return <AnalysisLoading />;
     }
     if (selectedCandidate) {
@@ -344,33 +346,27 @@ export default function Home() {
                                         </CardContent>
                                     </Card>
                                     
-                                    <Card className="p-4 border-dashed border-border/50 bg-black/20">
+                                    <Card className="p-4 border-border/50 bg-black/20">
                                         <CardHeader className='p-0 pb-4'>
-                                            <CardTitle className='flex items-center gap-2 text-base'><Rocket size={18}/> Enterprise Modules (Coming Soon)</CardTitle>
+                                            <CardTitle className='flex items-center gap-2 text-base'><Rocket size={18}/> Enterprise & Team Features</CardTitle>
                                             <CardDescription className='text-sm text-muted-foreground'>Advanced features for teams and organizations.</CardDescription>
                                         </CardHeader>
                                         <CardContent className='p-0 grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                                            <div className="flex items-center space-x-2 opacity-50">
-                                                <Checkbox id="candidate-ranking" disabled />
+                                            <div className="flex items-center space-x-2">
+                                                <Checkbox id="candidate-ranking" name="candidateRanking" />
                                                 <Label htmlFor="candidate-ranking" className='flex items-center gap-2 text-muted-foreground'>
                                                     <Medal size={16}/>Candidate Ranking
                                                 </Label>
                                             </div>
-                                            <div className="flex items-center space-x-2 opacity-50">
-                                                <Checkbox id="bulk-analysis" disabled />
-                                                <Label htmlFor="bulk-analysis" className='flex items-center gap-2 text-muted-foreground'>
-                                                    <Files size={16}/>Bulk Resume Analysis
-                                                </Label>
-                                            </div>
-                                            <div className="flex items-center space-x-2 opacity-50">
-                                                <Checkbox id="team-benchmarking" disabled />
+                                            <div className="flex items-center space-x-2">
+                                                <Checkbox id="team-benchmarking" name="teamBenchmarking" />
                                                 <Label htmlFor="team-benchmarking" className='flex items-center gap-2 text-muted-foreground'>
                                                     <Users size={16}/>Team Benchmarking
                                                 </Label>
                                             </div>
-                                            <div className="flex items-center space-x-2 opacity-50">
-                                                <Checkbox id="hiring-funnel" disabled />
-                                                <Label htmlFor="hiring-funnel" className='flex items-center gap-2 text-muted-foreground'>
+                                            <div className="flex items-center space-x-2">
+                                                <Checkbox id="hiring-funnel-insights" name="hiringFunnelInsights" />
+                                                <Label htmlFor="hiring-funnel-insights" className='flex items-center gap-2 text-muted-foreground'>
                                                     <Filter size={16}/>Hiring Funnel Insights
                                                 </Label>
                                             </div>

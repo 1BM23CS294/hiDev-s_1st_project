@@ -32,6 +32,8 @@ import {
   AlertTriangle,
   GitCompareArrows,
   School,
+  Medal,
+  Filter,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -62,7 +64,8 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
   const { 
     candidate, analysis, recommendations, salaryPrediction, personalityProfile, 
     videoAnalysis, workLifeBalance, networking, resumeRewrite,
-    roast, confidenceReport, brandCheck, hiddenStrengths, riskAssessment, skillWarning, versionSuggestion, internshipReport
+    roast, confidenceReport, brandCheck, hiddenStrengths, riskAssessment, skillWarning, versionSuggestion, internshipReport,
+    ranking, benchmark, funnelInsights,
   } = data;
   const performanceMetrics = analysis.performanceMetrics;
   
@@ -76,6 +79,9 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
     skillWarning ? 'skills' : null,
     versionSuggestion ? 'versioning' : null,
     internshipReport ? 'internship' : null,
+    ranking ? 'ranking' : null,
+    benchmark ? 'benchmarking' : null,
+    funnelInsights ? 'funnel' : null,
     videoAnalysis ? 'video' : null,
     salaryPrediction ? 'salary' : null,
     personalityProfile ? 'personality' : null,
@@ -115,6 +121,9 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                 {activeTabs.includes('skills') && <TabsTrigger value="skills">Skill Alert</TabsTrigger>}
                 {activeTabs.includes('versioning') && <TabsTrigger value="versioning">Versioning</TabsTrigger>}
                 {activeTabs.includes('internship') && <TabsTrigger value="internship">Internship</TabsTrigger>}
+                {activeTabs.includes('ranking') && <TabsTrigger value="ranking">Ranking</TabsTrigger>}
+                {activeTabs.includes('benchmarking') && <TabsTrigger value="benchmarking">Benchmarking</TabsTrigger>}
+                {activeTabs.includes('funnel') && <TabsTrigger value="funnel">Hiring Funnel</TabsTrigger>}
                 {activeTabs.includes('video') && <TabsTrigger value="video">Video</TabsTrigger>}
                 {activeTabs.includes('salary') && <TabsTrigger value="salary">Salary</TabsTrigger>}
                 {activeTabs.includes('personality') && <TabsTrigger value="personality">Personality</TabsTrigger>}
@@ -382,6 +391,83 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                             <h4 className='font-semibold mb-3'>Feedback for Improvement</h4>
                             <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
                                 {internshipReport.feedback.map((f, i) => <li key={i}>{f}</li>)}
+                            </ul>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>}
+
+            {ranking && <TabsContent value="ranking" className="mt-6">
+                <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary"><Medal size={20} /> Candidate Ranking</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                                <div className="p-4 bg-black/20 rounded-lg">
+                                    <p className="text-3xl font-bold">#{ranking.rank}</p>
+                                    <p className="text-xs text-muted-foreground">Rank</p>
+                                </div>
+                                <div className="p-4 bg-black/20 rounded-lg">
+                                    <p className="text-3xl font-bold">{ranking.percentile}<span className='text-xl'>th</span></p>
+                                    <p className="text-xs text-muted-foreground">Percentile</p>
+                                </div>
+                                <div className="p-4 bg-black/20 rounded-lg">
+                                    <p className="text-3xl font-bold">{ranking.totalApplicants}</p>
+                                    <p className="text-xs text-muted-foreground">Total Applicants</p>
+                                </div>
+                        </div>
+                         <div>
+                            <h4 className='font-semibold mb-2'>Comparison Summary</h4>
+                           <p className='text-sm text-muted-foreground'>{ranking.comparisonSummary}</p>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>}
+
+            {benchmark && <TabsContent value="benchmarking" className="mt-6">
+                <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary"><Users size={20} /> Team Benchmarking</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                         <blockquote className="border-l-2 pl-6 italic">{benchmark.benchmarkSummary}</blockquote>
+                        <div>
+                            <h4 className='font-semibold mb-3'>Strengths vs. Team Average</h4>
+                            <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                                {benchmark.strengthsVsTeam.map((s, i) => <li key={i}>{s}</li>)}
+                            </ul>
+                        </div>
+                         <div>
+                            <h4 className='font-semibold mb-3'>Fills Existing Team Gaps In...</h4>
+                            <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                                {benchmark.gapsCandidateFills.map((g, i) => <li key={i}>{g}</li>)}
+                            </ul>
+                        </div>
+                    </CardContent>
+                </Card>
+            </TabsContent>}
+
+             {funnelInsights && <TabsContent value="funnel" className="mt-6">
+                <Card className='bg-black/20 border border-primary/20'>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-primary"><Filter size={20} /> Hiring Funnel Insights</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
+                                <div className="p-4 bg-black/20 rounded-lg">
+                                    <p className="text-2xl font-bold">{funnelInsights.estimatedTimeToHire}</p>
+                                    <p className="text-xs text-muted-foreground">Est. Time to Hire</p>
+                                </div>
+                                <div className="p-4 bg-black/20 rounded-lg">
+                                    <p className="text-2xl font-bold">{new Intl.NumberFormat('en-US', { style: 'currency', currency: funnelInsights.currency, minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(funnelInsights.predictedCostPerHire)}</p>
+                                    <p className="text-xs text-muted-foreground">Predicted Cost per Hire</p>
+                                </div>
+                        </div>
+                        <div>
+                            <h4 className='font-semibold mb-3'>Funnel Optimization Tips</h4>
+                            <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                                {funnelInsights.funnelImprovementTips.map((tip, i) => <li key={i}>{tip}</li>)}
                             </ul>
                         </div>
                     </CardContent>

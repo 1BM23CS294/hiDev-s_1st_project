@@ -15,3 +15,6 @@ export * from './career-risk-assessment-flow';
 export * from './skill-obsolescence-warning-flow';
 export * from './resume-version-control-flow';
 export * from './internship-readiness-flow';
+export * from './candidate-ranking-flow';
+export * from './team-benchmarking-flow';
+export * from './hiring-funnel-insights-flow';

@@ -19,3 +19,6 @@ import '@/ai/flows/career-risk-assessment-flow.ts';
 import '@/ai/flows/skill-obsolescence-warning-flow.ts';
 import '@/ai/flows/resume-version-control-flow.ts';
 import '@/ai/flows/internship-readiness-flow.ts';
+import '@/ai/flows/candidate-ranking-flow.ts';
+import '@/ai/flows/team-benchmarking-flow.ts';
+import '@/ai/flows/hiring-funnel-insights-flow.ts';
