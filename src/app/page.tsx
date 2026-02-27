@@ -83,7 +83,7 @@ function getInitials(name: string) {
 
 export default function Home() {
   const [state, formAction] = useActionState(analyzeResume, initialState);
-  const [isPending, startTransition] = useTransition();
+  const { pending } = useFormStatus();
   const [step, setStep] = useState(1);
   const [selectedCandidate, setSelectedCandidate] = useState<AnalyzedCandidate | null>(null);
   const [resumeFileNames, setResumeFileNames] = useState<string[]>([]);
@@ -176,7 +176,17 @@ export default function Home() {
         variant: "destructive",
       });
     }
-  }, [state]); // Only depends on the `state` from `useActionState`
+  }, [state, user, reportsCollection, toast]);
+
+  // Effect to scroll and clear selection when analysis starts
+  useEffect(() => {
+    if (pending) {
+      setSelectedCandidate(null);
+      if (resultsRef.current) {
+        resultsRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, [pending]);
 
 
   const handleDeleteReport = (reportId: string, ownerId: string) => {
@@ -214,18 +224,9 @@ export default function Home() {
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
   
-  const handleFormAction = (formData: FormData) => {
-      startTransition(() => {
-        setSelectedCandidate(null);
-        if (resultsRef.current) {
-          resultsRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-        formAction(formData);
-      });
-  };
 
   const renderMainPanelContent = () => {
-    if (isPending) {
+    if (pending) {
       return <AnalysisLoading />;
     }
     if (selectedCandidate) {
@@ -271,7 +272,7 @@ export default function Home() {
                             </div>
                         </CardHeader>
                         <CardContent className="flex-grow pt-6">
-                            <form ref={formRef} action={handleFormAction} className="space-y-4">
+                            <form ref={formRef} action={formAction} className="space-y-4">
                                 <div className={cn("space-y-4", step !== 1 && "hidden")}>
                                       <h2 className='text-lg font-semibold text-primary'>Step 1: Core Information</h2>
                                       <div className="space-y-2">
@@ -347,9 +348,9 @@ export default function Home() {
                                             <CardTitle className='flex items-center gap-2 text-base'><Rocket size={18}/> Enterprise Modules</CardTitle>
                                         </CardHeader>
                                         <CardContent className='p-0 grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                                            <div className="flex items-center space-x-2"><Checkbox id="candidate-ranking" name="candidateRanking" /><Label htmlFor="candidate-ranking" className='flex items-center gap-2 text-muted-foreground'><Medal size={16}/>Candidate Ranking</Label></div>
-                                            <div className="flex items-center space-x-2"><Checkbox id="team-benchmarking" name="teamBenchmarking" /><Label htmlFor="team-benchmarking" className='flex items-center gap-2 text-muted-foreground'><Users size={16}/>Team Benchmarking</Label></div>
-                                            <div className="flex items-center space-x-2"><Checkbox id="hiring-funnel-insights" name="hiringFunnelInsights" /><Label htmlFor="hiring-funnel-insights" className='flex items-center gap-2 text-muted-foreground'><Filter size={16}/>Hiring Funnel Insights</Label></div>
+                                            <div className="flex items-center space-x-2"><Checkbox id="candidate-ranking" name="candidateRanking" defaultChecked={true} /><Label htmlFor="candidate-ranking" className='flex items-center gap-2 text-muted-foreground'><Medal size={16}/>Candidate Ranking</Label></div>
+                                            <div className="flex items-center space-x-2"><Checkbox id="team-benchmarking" name="teamBenchmarking" defaultChecked={true} /><Label htmlFor="team-benchmarking" className='flex items-center gap-2 text-muted-foreground'><Users size={16}/>Team Benchmarking</Label></div>
+                                            <div className="flex items-center space-x-2"><Checkbox id="hiring-funnel-insights" name="hiringFunnelInsights" defaultChecked={true} /><Label htmlFor="hiring-funnel-insights" className='flex items-center gap-2 text-muted-foreground'><Filter size={16}/>Hiring Funnel Insights</Label></div>
                                         </CardContent>
                                     </Card>
 

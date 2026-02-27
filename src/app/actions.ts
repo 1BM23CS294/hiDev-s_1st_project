@@ -118,7 +118,6 @@ async function _analyzeSingleResume(
         candidateRanking,
         teamBenchmarking,
         hiringFunnelInsights,
-        // International
         getResumeExports: shouldGetResumeExports,
         getCountryRules: shouldGetCountryRules,
         assessVisa: shouldAssessVisa,
