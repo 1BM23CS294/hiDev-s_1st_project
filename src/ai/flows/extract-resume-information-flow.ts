@@ -94,7 +94,7 @@ const extractResumeInformationPrompt = ai.definePrompt({
   name: 'extractResumeInformationPrompt',
   input: {schema: ExtractResumeInformationInputSchema},
   output: {schema: ExtractResumeInformationOutputSchema},
-  prompt: `You are an expert resume parser. Your task is to accurately extract key information from the provided resume.
+  prompt: `You are an expert resume parser and data extractor. Your task is to analyze the provided document and accurately extract key information, regardless of its format, layout, or structure. The document could be a traditional resume, a multi-page CV, an image of a resume, or an unconventional design. Your primary goal is to find the relevant information wherever it is located and structure it correctly.
 
 First, detect the language of the provided resume. If it is not in English, translate the entire resume to English before proceeding. Use the English version for the extraction.
 
@@ -116,7 +116,7 @@ Then, analyze the document carefully and extract the following details into a st
 - A brief, high-level summary of the candidate based on the resume content (optional).
 - The detected language of the original resume. Return "English" if no translation was needed.
 
-Ensure all extracted information is accurate and structured precisely according to the output schema provided. If a field is not found, omit it or use an empty string/array as appropriate, especially for optional fields.
+Ensure all extracted information is accurate and structured precisely according to the output schema provided. Be resilient to typos or variations in section headings. If a field is not found, omit it or use an empty string/array as appropriate, especially for optional fields.
 
 Resume: {{media url=resumeDataUri}}`,
 });
