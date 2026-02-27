@@ -60,14 +60,22 @@ const AnalyzeResumeSchema = z.object({
   internshipReadiness: z.coerce.boolean().default(true),
 
   // Enterprise Modules
-  candidateRanking: z.coerce.boolean().default(false),
-  teamBenchmarking: z.coerce.boolean().default(false),
-  hiringFunnelInsights: z.coerce.boolean().default(false),
+  candidateRanking: z.coerce.boolean().default(true),
+  teamBenchmarking: z.coerce.boolean().default(true),
+  hiringFunnelInsights: z.coerce.boolean().default(true),
 
   // International
-  getResumeExports: z.coerce.boolean().default(false),
-  getCountryRules: z.coerce.boolean().default(false),
-  assessVisa: z.coerce.boolean().default(false),
+  getResumeExports: z.coerce.boolean().default(true),
+  getCountryRules: z.coerce.boolean().default(true),
+  assessVisa: z.coerce.boolean().default(true),
+}).superRefine((data, ctx) => {
+  if (data.analyzeVideo && !data.videoFile) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["videoFile"],
+      message: "A video file must be uploaded when Video Analysis is enabled.",
+    });
+  }
 });
 
 
@@ -231,10 +239,17 @@ async function _analyzeSingleResume(
 export async function analyzeResume(prevState: FormState, formData: FormData): Promise<FormState> {
   const allEntries = Object.fromEntries(formData.entries());
   
-  const dataToValidate = {
+  const dataToValidate: Record<string, any> = {
       ...allEntries,
       resumeFiles: formData.getAll('resumeFile').filter(f => f instanceof File && f.size > 0),
   };
+
+  // Zod's `optional` doesn't handle empty File objects from forms well.
+  // Pre-process to remove videoFile if it's not a valid, uploaded file.
+  const videoFile = formData.get('videoFile');
+  if (!(videoFile instanceof File) || videoFile.size === 0) {
+    delete dataToValidate.videoFile;
+  }
   
   const validatedFields = AnalyzeResumeSchema.safeParse(dataToValidate);
 
