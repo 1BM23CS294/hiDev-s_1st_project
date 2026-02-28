@@ -18,53 +18,48 @@ This app is your personal AI assistant for understanding resumes. Whether you're
 
 ---
 
-## How to Run This App on Your Computer (for Developers)
+## Local Setup: Step-by-Step Guide
 
-This guide will walk you through setting up and running the project on your own machine.
+Follow these steps to run the Intelligent Resume Analyzer on your own computer.
 
-### Before You Start: What You Need
+### Step 1: Check Prerequisites
+Make sure you have **Node.js** installed on your computer. This is essential for running the application.
 
-*   **Node.js:** Make sure you have Node.js installed on your computer. This is what runs the application.
+### Step 2: Install Project Dependencies
+Open your computer's terminal (command prompt) and navigate to your project's folder. Then, run the following command to install all the necessary code packages:
+\`\`\`bash
+npm install
+\`\`\`
 
-### Step 1: Install the Project Files
+### Step 3: Get Your Free Google AI API Key
+This app uses Google's Gemini AI. To use its features, you need a free, personal API key.
 
-First, you need to download all the project's code packages.
+1.  **Go to Google AI Studio**: Visit [Google AI Studio](https://aistudio.google.com/app/apikey).
+2.  **Create & Copy Your Key**: Follow the on-screen steps to create a new API key and copy it.
 
-*   Open your computer's **terminal** (also known as a command line or command prompt).
-*   Run this command:
-    \`\`\`bash
-    npm install
+> **Important**: Your API key is like a personal password for Google's AI services. It must be kept secret. Using your own key keeps your usage secure. The process is quick and free.
+
+### Step 4: Add Your API Key to the Project
+You need to tell the application what your API key is.
+
+1.  **Find the \`.env\` file**: In the main project folder, locate the file named \`.env\`. The key inside is just a placeholder.
+2.  **Paste Your Key**: Open this file and replace the placeholder key with the unique key you copied from Google AI Studio.
+
+    It should look like this after you edit it:
+    \`\`\`
+    GEMINI_API_KEY="AIzaSy...your...unique...key..."
     \`\`\`
 
-### Step 2: Get Your Free Google AI API Key
-
-The AI features in this app are powered by Google Gemini. To use them, you need a personal (and free) API key.
-
-*   **What's an API Key?** Think of it as a password that gives you access to Google's AI services.
-*   **Why do I need my own?** For security, every developer must use their own key. It's unique to you and must be kept secret. This also ensures you have your own usage quota. The process to get one is quick and free.
-
-*   **Get your key here:**
-    *   Go to **[Google AI Studio](https://aistudio.google.com/app/apikey)**.
-    *   Follow the simple steps to create and copy your new API key.
-
-### Step 3: Add Your API Key to the Project
-
-Now, you need to tell the project what your API key is.
-
-*   In the main project folder, find the file named **\`.env\`**.
-*   Open it and you will see this line: \`GEMINI_API_KEY="YOUR_API_KEY_HERE"\`
-*   Replace \`"YOUR_API_KEY_HERE"\` with the unique key you just got from Google.
-    *   For example: \`GEMINI_API_KEY="AIzaSy...your...key...here..."\`
-
-### Step 4: Start the App!
-
-You're all set! To start the application, run this command in your terminal:
-
+### Step 5: Start the App!
+You're ready to go. To start the application, run this command in your terminal:
 \`\`\`bash
 npm run dev
 \`\`\`
+This will start the local development server.
 
-Your app will now be running at **[http://localhost:9002](http://localhost:9002)**. Open this link in your web browser to see it in action.
+### Step 6: View the App in Your Browser
+Open your web browser and navigate to the address below to see the application in action:
+**[http://localhost:9002](http://localhost:9002)**
 
 ---
 
