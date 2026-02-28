@@ -73,16 +73,16 @@ const AnalyzeResumeSchema = z.object({
   exportFormats: z.coerce.boolean().default(true),
 
   // Career Development Modules
-  generateProjectIdeas: z.coerce.boolean().default(false),
-  suggestCertifications: z.coerce.boolean().default(false),
-  recommendCourses: z.coerce.boolean().default(false),
-  recommendSideHustles: z.coerce.boolean().default(false),
-  estimateFreelancePricing: z.coerce.boolean().default(false),
-  generateSwotAnalysis: z.coerce.boolean().default(false),
-  mapStrengthsToCareers: z.coerce.boolean().default(false),
-  optimizeSkillStack: z.coerce.boolean().default(false),
-  estimateTimeToEmployability: z.coerce.boolean().default(false),
-  generateCareerPlan: z.coerce.boolean().default(false),
+  generateProjectIdeas: z.coerce.boolean().default(true),
+  suggestCertifications: z.coerce.boolean().default(true),
+  recommendCourses: z.coerce.boolean().default(true),
+  recommendSideHustles: z.coerce.boolean().default(true),
+  estimateFreelancePricing: z.coerce.boolean().default(true),
+  generateSwotAnalysis: z.coerce.boolean().default(true),
+  mapStrengthsToCareers: z.coerce.boolean().default(true),
+  optimizeSkillStack: z.coerce.boolean().default(true),
+  estimateTimeToEmployability: z.coerce.boolean().default(true),
+  generateCareerPlan: z.coerce.boolean().default(true),
 
 }).superRefine((data, ctx) => {
   if (data.analyzeVideo && !data.videoFile) {
