@@ -36,6 +36,16 @@ import {
   FileJson,
   Globe,
   Ship,
+  BookOpen,
+  ClipboardCheck,
+  BookMarked,
+  HandCoins,
+  Wallet,
+  Target,
+  Goal,
+  Layers,
+  Hourglass,
+  Map,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -51,7 +61,8 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
     videoAnalysis, workLifeBalance, networking, resumeRewrite,
     roast, confidenceReport, brandCheck, hiddenStrengths, riskAssessment, skillWarning, versionSuggestion, internshipReport,
     ranking, benchmark, funnelInsights,
-    resumeExports, countryRules, visaSponsorship
+    resumeExports, countryRules, visaSponsorship,
+    projectIdeas, certifications, courses, sideHustles, freelancePricing, swotAnalysis, careerMapping, skillStack, timeToEmployability, careerPlan
   } = data;
 
   return (
@@ -384,6 +395,247 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                         <h4 className='font-semibold mb-3'>Funnel Optimization Tips</h4>
                         <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
                             {funnelInsights.funnelImprovementTips.map((tip, i) => <li key={i}>{tip}</li>)}
+                        </ul>
+                    </div>
+                </CardContent>
+            </Card>
+        )}
+
+        {careerPlan && (
+            <Card className='bg-black/20 border border-primary/20 backdrop-blur-lg shadow-lg shadow-primary/10'>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-primary text-xl">
+                        <Map size={20} /> 30-60-90 Day Career Plan
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Tabs defaultValue="30" className="w-full">
+                        <TabsList className="grid w-full grid-cols-3 bg-black/30">
+                            <TabsTrigger value="30">30 Days</TabsTrigger>
+                            <TabsTrigger value="60">60 Days</TabsTrigger>
+                            <TabsTrigger value="90">90 Days</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="30" className="mt-4">
+                            <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                                {careerPlan.plan.thirtyDays.map((item, i) => <li key={i}>{item}</li>)}
+                            </ul>
+                        </TabsContent>
+                        <TabsContent value="60" className="mt-4">
+                             <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                                {careerPlan.plan.sixtyDays.map((item, i) => <li key={i}>{item}</li>)}
+                            </ul>
+                        </TabsContent>
+                        <TabsContent value="90" className="mt-4">
+                             <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                                {careerPlan.plan.ninetyDays.map((item, i) => <li key={i}>{item}</li>)}
+                            </ul>
+                        </TabsContent>
+                    </Tabs>
+                </CardContent>
+            </Card>
+        )}
+        
+        {projectIdeas && (
+            <Card className='bg-black/20 border border-primary/20 backdrop-blur-lg shadow-lg shadow-primary/10'>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-primary text-xl">
+                        <BookOpen size={20} /> Project Idea Generator
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {projectIdeas.projectIdeas.map((idea, i) => (
+                        <div key={i} className="pl-4 border-l-2 border-primary/50">
+                            <p className="font-bold">{idea.title}</p>
+                            <p className="text-sm text-muted-foreground mt-1">{idea.description}</p>
+                             <div className="flex flex-wrap gap-2 mt-2">
+                                {idea.relevantSkills.map((skill, j) => <Badge key={j} variant="secondary">{skill}</Badge>)}
+                            </div>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+        )}
+
+        {certifications && (
+            <Card className='bg-black/20 border border-primary/20 backdrop-blur-lg shadow-lg shadow-primary/10'>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-primary text-xl">
+                        <ClipboardCheck size={20} /> Certification Suggestions
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     {certifications.certifications.map((cert, i) => (
+                        <div key={i} className="pl-4 border-l-2 border-primary/50">
+                            <p className="font-bold">{cert.name}</p>
+                            <p className="text-sm font-semibold text-muted-foreground">{cert.issuingBody}</p>
+                            <p className="text-sm text-muted-foreground mt-1">{cert.relevance}</p>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+        )}
+
+        {courses && (
+            <Card className='bg-black/20 border border-primary/20 backdrop-blur-lg shadow-lg shadow-primary/10'>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-primary text-xl">
+                        <BookMarked size={20} /> Course Recommendations
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     {courses.courses.map((course, i) => (
+                        <div key={i} className="p-3 bg-black/20 rounded-lg flex justify-between items-center">
+                            <div>
+                                <p className='font-semibold'>{course.title}</p>
+                                <p className='text-xs text-muted-foreground mb-1'>{course.platform}</p>
+                                <p className='text-xs text-muted-foreground'>{course.description}</p>
+                            </div>
+                            <Button variant="ghost" size="sm" asChild><Link href={course.url} target="_blank"><LinkIcon size={14} /></Link></Button>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+        )}
+
+        {sideHustles && (
+            <Card className='bg-black/20 border border-primary/20 backdrop-blur-lg shadow-lg shadow-primary/10'>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-primary text-xl">
+                        <HandCoins size={20} /> Side Hustle Recommendations
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {sideHustles.sideHustles.map((hustle, i) => (
+                        <div key={i} className="pl-4 border-l-2 border-primary/50">
+                            <div className="flex justify-between items-start">
+                                <p className="font-bold">{hustle.title}</p>
+                                <Badge variant="secondary"> {hustle.potentialEarning} Potential</Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">{hustle.description}</p>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+        )}
+        
+        {freelancePricing && (
+            <Card className='bg-black/20 border border-primary/20 backdrop-blur-lg shadow-lg shadow-primary/10'>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-primary text-xl">
+                        <Wallet size={20} /> Freelance Pricing Estimator
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
+                        <div className="p-4 bg-black/20 rounded-lg">
+                            <p className="text-2xl font-bold">{new Intl.NumberFormat('en-US', { style: 'currency', currency: freelancePricing.currency, minimumFractionDigits: 0 }).format(freelancePricing.hourlyRate.min)} - {new Intl.NumberFormat('en-US', { style: 'currency', currency: freelancePricing.currency, minimumFractionDigits: 0 }).format(freelancePricing.hourlyRate.max)}</p>
+                            <p className="text-xs text-muted-foreground">Hourly Rate ({freelancePricing.currency})</p>
+                        </div>
+                        <div className="p-4 bg-black/20 rounded-lg">
+                           <p className="text-2xl font-bold">{new Intl.NumberFormat('en-US', { style: 'currency', currency: freelancePricing.currency, minimumFractionDigits: 0 }).format(freelancePricing.projectRate.min)} - {new Intl.NumberFormat('en-US', { style: 'currency', currency: freelancePricing.currency, minimumFractionDigits: 0 }).format(freelancePricing.projectRate.max)}</p>
+                            <p className="text-xs text-muted-foreground">Project Rate ({freelancePricing.currency})</p>
+                        </div>
+                    </div>
+                     <div>
+                        <h4 className='font-semibold mb-3'>Influencing Factors</h4>
+                        <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                            {freelancePricing.factors.map((factor, i) => <li key={i}>{factor}</li>)}
+                        </ul>
+                    </div>
+                </CardContent>
+            </Card>
+        )}
+
+        {swotAnalysis && (
+            <Card className='bg-black/20 border border-primary/20 backdrop-blur-lg shadow-lg shadow-primary/10'>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-primary text-xl">
+                        <Target size={20} /> Personal SWOT Analysis
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                        <h4 className="font-semibold text-green-400">Strengths</h4>
+                         <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                            {swotAnalysis.swot.strengths.map((item, i) => <li key={i}>{item}</li>)}
+                        </ul>
+                    </div>
+                     <div className="space-y-3">
+                        <h4 className="font-semibold text-amber-400">Weaknesses</h4>
+                         <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                            {swotAnalysis.swot.weaknesses.map((item, i) => <li key={i}>{item}</li>)}
+                        </ul>
+                    </div>
+                     <div className="space-y-3">
+                        <h4 className="font-semibold text-blue-400">Opportunities</h4>
+                         <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                            {swotAnalysis.swot.opportunities.map((item, i) => <li key={i}>{item}</li>)}
+                        </ul>
+                    </div>
+                     <div className="space-y-3">
+                        <h4 className="font-semibold text-red-400">Threats</h4>
+                         <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                            {swotAnalysis.swot.threats.map((item, i) => <li key={i}>{item}</li>)}
+                        </ul>
+                    </div>
+                </CardContent>
+            </Card>
+        )}
+
+        {careerMapping && (
+             <Card className='bg-black/20 border border-primary/20 backdrop-blur-lg shadow-lg shadow-primary/10'>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-primary text-xl">
+                        <Goal size={20} /> Strength-to-Career Mapping
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     {careerMapping.careerPaths.map((path, i) => (
+                        <div key={i} className="pl-4 border-l-2 border-primary/50">
+                            <p className="font-bold">{path.path}</p>
+                            <p className="text-sm text-muted-foreground mt-1">{path.description}</p>
+                            <p className="text-sm text-muted-foreground mt-2"><strong>Alignment: </strong>{path.alignment}</p>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+        )}
+
+        {skillStack && (
+            <Card className='bg-black/20 border border-primary/20 backdrop-blur-lg shadow-lg shadow-primary/10'>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-primary text-xl">
+                        <Layers size={20} /> Skill Stack Optimizer
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <blockquote className="border-l-2 pl-6 italic">{skillStack.stackSummary}</blockquote>
+                    <div>
+                        <h4 className='font-semibold mb-3'>Recommended Additions</h4>
+                        <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                            {skillStack.recommendedStack.map((item, i) => <li key={i}><strong>{item.skill}:</strong> {item.reason}</li>)}
+                        </ul>
+                    </div>
+                </CardContent>
+            </Card>
+        )}
+
+        {timeToEmployability && (
+            <Card className='bg-black/20 border border-primary/20 backdrop-blur-lg shadow-lg shadow-primary/10'>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-primary text-xl">
+                        <Hourglass size={20} /> Time-to-Employability Calculator
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     <div className="text-center p-6 rounded-lg bg-black/20 flex flex-col items-center justify-center">
+                        <p className="text-sm text-muted-foreground">Estimated Time to Become "Hirable"</p>
+                        <p className="text-4xl font-bold tracking-tight my-2 text-primary">{timeToEmployability.estimatedTime}</p>
+                    </div>
+                    <div>
+                        <h4 className='font-semibold mb-3'>Suggested Learning Plan</h4>
+                        <ul className="list-decimal pl-5 space-y-2 text-sm text-foreground/80">
+                            {timeToEmployability.learningPlan.map((step, i) => <li key={i}>{step.step} ({step.duration})</li>)}
                         </ul>
                     </div>
                 </CardContent>

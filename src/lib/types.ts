@@ -22,6 +22,16 @@ import type {
   ResumeExportOutput,
   CountryResumeRulesOutput,
   VisaSponsorshipOutput,
+  ProjectIdeaOutput,
+  CertificationSuggestionOutput,
+  CourseRecommendationOutput,
+  SideHustleOutput,
+  FreelancePricingOutput,
+  SwotAnalysisOutput,
+  CareerMappingOutput,
+  SkillStackOutput,
+  TimeToEmployabilityOutput,
+  CareerPlanOutput,
 } from '@/ai/flows';
 
 export type Candidate = ExtractResumeInformationOutput;
@@ -53,6 +63,18 @@ export type { GetHiringFunnelInsightsOutput } from '@/ai/flows';
 export type { ResumeExportOutput } from '@/ai/flows';
 export type { CountryResumeRulesOutput } from '@/ai/flows';
 export type { VisaSponsorshipOutput } from '@/ai/flows';
+
+// Career Development Modules
+export type { ProjectIdeaOutput } from '@/ai/flows';
+export type { CertificationSuggestionOutput } from '@/ai/flows';
+export type { CourseRecommendationOutput } from '@/ai/flows';
+export type { SideHustleOutput } from '@/ai/flows';
+export type { FreelancePricingOutput } from '@/ai/flows';
+export type { SwotAnalysisOutput } from '@/ai/flows';
+export type { CareerMappingOutput } from '@/ai/flows';
+export type { SkillStackOutput } from '@/ai/flows';
+export type { TimeToEmployabilityOutput } from '@/ai/flows';
+export type { CareerPlanOutput } from '@/ai/flows';
 
 
 export type AnalyzedCandidate = {
@@ -93,4 +115,16 @@ export type AnalyzedCandidate = {
   resumeExports?: ResumeExportOutput;
   countryRules?: CountryResumeRulesOutput;
   visaSponsorship?: VisaSponsorshipOutput;
+
+  // Career Development Modules
+  projectIdeas?: ProjectIdeaOutput;
+  certifications?: CertificationSuggestionOutput;
+  courses?: CourseRecommendationOutput;
+  sideHustles?: SideHustleOutput;
+  freelancePricing?: FreelancePricingOutput;
+  swotAnalysis?: SwotAnalysisOutput;
+  careerMapping?: CareerMappingOutput;
+  skillStack?: SkillStackOutput;
+  timeToEmployability?: TimeToEmployabilityOutput;
+  careerPlan?: CareerPlanOutput;
 };
