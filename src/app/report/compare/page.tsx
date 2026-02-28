@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import type { AnalyzedCandidate } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
@@ -9,23 +9,25 @@ import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useSearchParams } from 'next/navigation';
 
-export default function CompareReportPage() {
+
+function CompareReportContent() {
     const searchParams = useSearchParams();
     const ids = searchParams.get('ids');
+    const sessionData = searchParams.get('sessionData');
     const [reportIdA, reportIdB] = useMemo(() => ids?.split(',') || [null, null], [ids]);
 
     const { user, isUserLoading } = useUser();
     const firestore = useFirestore();
 
     const reportADocRef = useMemoFirebase(() => {
-        if (!user || !firestore || !reportIdA) return null;
+        if (sessionData || !user || !firestore || !reportIdA) return null;
         return doc(firestore, 'users', user.uid, 'analysisReports', reportIdA);
-    }, [firestore, user, reportIdA]);
+    }, [firestore, user, reportIdA, sessionData]);
 
     const reportBDocRef = useMemoFirebase(() => {
-        if (!user || !firestore || !reportIdB) return null;
+        if (sessionData || !user || !firestore || !reportIdB) return null;
         return doc(firestore, 'users', user.uid, 'analysisReports', reportIdB);
-    }, [firestore, user, reportIdB]);
+    }, [firestore, user, reportIdB, sessionData]);
 
     const { data: reportADoc, isLoading: isLoadingA } = useDoc(reportADocRef);
     const { data: reportBDoc, isLoading: isLoadingB } = useDoc(reportBDocRef);
@@ -34,6 +36,22 @@ export default function CompareReportPage() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        if (sessionData && reportIdA && reportIdB) {
+            try {
+                const dataA = JSON.parse(sessionStorage.getItem(`report_${reportIdA}`) || '{}');
+                const dataB = JSON.parse(sessionStorage.getItem(`report_${reportIdB}`) || '{}');
+                if (dataA.id === reportIdA && dataB.id === reportIdB) {
+                    setReportData([dataA, dataB]);
+                } else {
+                    setError("Comparison data not found in session. It may have expired.");
+                }
+            } catch (e) {
+                setError("Could not parse comparison data from session.");
+            }
+            return;
+        }
+
+
         if (isLoadingA || isLoadingB || isUserLoading) return;
         
         if (reportADoc && reportBDoc) {
@@ -51,18 +69,18 @@ export default function CompareReportPage() {
         else {
             setError("One or more reports could not be found.");
         }
-    }, [reportADoc, reportBDoc, isLoadingA, isLoadingB, isUserLoading, ids]);
+    }, [reportADoc, reportBDoc, isLoadingA, isLoadingB, isUserLoading, ids, sessionData, reportIdA, reportIdB]);
 
-    if (isLoadingA || isLoadingB || isUserLoading) {
+    if (!sessionData && (isLoadingA || isLoadingB || isUserLoading)) {
         return <PageLoader />;
     }
 
     if (error || !reportData) {
         return (
-            <div className="flex h-screen w-full items-center justify-center bg-background text-center text-white">
+             <div className="flex h-screen w-full items-center justify-center bg-gray-100 text-center">
                 <div>
-                    <h1 className="text-2xl font-bold">Comparison Report Not Found</h1>
-                    <p className="text-muted-foreground">{error || "The report could not be loaded."}</p>
+                    <h1 className="text-2xl font-bold text-gray-800">Comparison Report Not Found</h1>
+                    <p className="text-gray-600">{error || "The report could not be loaded."}</p>
                 </div>
             </div>
         );
@@ -96,5 +114,13 @@ export default function CompareReportPage() {
                 </div>
             </main>
         </>
+    );
+}
+
+export default function CompareReportPage() {
+    return (
+        <Suspense fallback={<PageLoader />}>
+            <CompareReportContent />
+        </Suspense>
     );
 }

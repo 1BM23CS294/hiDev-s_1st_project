@@ -210,43 +210,51 @@ export default function Home() {
     const reportId = selectedCandidate.id;
 
     try {
-      if (!selectedCandidate.firestoreId && reportsCollection && user) {
-        const docRef = doc(reportsCollection, reportId);
-        
-        const reportToSave: Omit<typeof selectedCandidate, 'firestoreId'> = { ...selectedCandidate };
-        const reportData = {
-          reportJson: JSON.stringify(reportToSave),
-          createdAt: serverTimestamp(),
-          userId: user.uid,
-        };
+        // 1. Save data to session storage immediately
+        sessionStorage.setItem(`report_${reportId}`, JSON.stringify(selectedCandidate));
 
-        await setDoc(docRef, reportData);
-        setSelectedCandidate(prev => prev && prev.id === reportId ? { ...prev, firestoreId: reportId } : prev);
+        // 2. Open the report page with a flag to use session storage
+        window.open(`/report/${reportId}?sessionData=true`, '_blank');
         
-        toast({ title: 'Report saved to history' });
-      }
-      window.open(`/report/${reportId}`, '_blank');
-    } catch (error: any) {
-      console.error("Failed to save or download report:", error);
-      if (error.code && error.code.startsWith('permission-denied') && reportsCollection) {
-          const permissionError = new FirestorePermissionError({
-              path: doc(reportsCollection, reportId).path,
-              operation: 'create',
-          });
-          errorEmitter.emit('permission-error', permissionError);
-      }
-      toast({
-        title: "Download Failed",
-        description: "Could not save the report. Please check permissions.",
-        variant: "destructive",
-      });
+        // 3. Save to Firestore in the background for persistence, if not already saved
+        if (!selectedCandidate.firestoreId && reportsCollection && user) {
+            const docRef = doc(reportsCollection, reportId);
+            const reportToSave: Omit<typeof selectedCandidate, 'firestoreId'> = { ...selectedCandidate };
+            const reportData = {
+                reportJson: JSON.stringify(reportToSave),
+                createdAt: serverTimestamp(),
+                userId: user.uid,
+            };
+
+            // Non-blocking save
+            setDoc(docRef, reportData).then(() => {
+                setSelectedCandidate(prev => prev && prev.id === reportId ? { ...prev, firestoreId: reportId } : prev);
+                toast({ title: 'Report saved to history' });
+            }).catch((error: any) => {
+                console.error("Background save to Firestore failed:", error);
+                if (error.code && error.code.startsWith('permission-denied')) {
+                    const permissionError = new FirestorePermissionError({
+                        path: docRef.path,
+                        operation: 'create',
+                    });
+                    errorEmitter.emit('permission-error', permissionError);
+                }
+            });
+        }
+    } catch (error) {
+        console.error("Failed to prepare report for download:", error);
+        toast({
+            title: "Download Failed",
+            description: "An unexpected error occurred while preparing your report.",
+            variant: "destructive",
+        });
     } finally {
-      setIsDownloading(false);
+        setIsDownloading(false);
     }
   };
 
   const handleDownloadComparisonPdf = async () => {
-    if (!comparisonData || !reportsCollection || !user || isAnonymous) {
+    if (!comparisonData || isAnonymous) {
         if(isAnonymous) {
           toast({
             title: "Guest Mode",
@@ -259,39 +267,49 @@ export default function Home() {
     setIsDownloading(true);
     try {
         const [candidateA, candidateB] = comparisonData;
-        let idA = candidateA.firestoreId;
-        let idB = candidateB.firestoreId;
+        const idA = candidateA.id;
+        const idB = candidateB.id;
 
-        const saveReport = async (candidate: AnalyzedCandidate, existingId: string | undefined) => {
-            if (existingId) return existingId;
-            const docRef = doc(reportsCollection, candidate.id);
-            const reportToSave: Omit<typeof candidate, 'firestoreId'> = { ...candidate };
-            await setDoc(docRef, {
-                reportJson: JSON.stringify(reportToSave),
-                createdAt: serverTimestamp(),
-                userId: user.uid,
-            });
-            return candidate.id;
-        };
+        // 1. Save both reports to session storage
+        sessionStorage.setItem(`report_${idA}`, JSON.stringify(candidateA));
+        sessionStorage.setItem(`report_${idB}`, JSON.stringify(candidateB));
 
-        [idA, idB] = await Promise.all([
-            saveReport(candidateA, idA),
-            saveReport(candidateB, idB)
-        ]);
+        // 2. Open the comparison page with a flag
+        window.open(`/report/compare?ids=${idA},${idB}&sessionData=true`, '_blank');
+        
+        // 3. Save to firestore in the background
+        if (reportsCollection && user) {
+            const saveReport = (candidate: AnalyzedCandidate) => {
+                if (candidate.firestoreId) return; // Already saved
+                const docRef = doc(reportsCollection, candidate.id);
+                const reportToSave: Omit<typeof candidate, 'firestoreId'> = { ...candidate };
+                // Non-blocking save
+                setDoc(docRef, {
+                    reportJson: JSON.stringify(reportToSave),
+                    createdAt: serverTimestamp(),
+                    userId: user.uid,
+                }).catch((error: any) => {
+                    console.error(`Background save for ${candidate.id} failed:`, error);
+                });
+            };
 
-        window.open(`/report/compare?ids=${idA},${idB}`, '_blank');
+            saveReport(candidateA);
+            saveReport(candidateB);
+            toast({ title: 'Comparison report saved to history' });
+        }
 
     } catch (error: any) {
-        console.error("Failed to save or download comparison report:", error);
+        console.error("Failed to prepare comparison report for download:", error);
         toast({
             title: "Download Failed",
-            description: "Could not save the reports to history. Please check your permissions.",
+            description: "An unexpected error occurred while preparing your comparison report.",
             variant: "destructive",
         });
     } finally {
         setIsDownloading(false);
     }
  };
+
 
   const renderMainPanelContent = () => {
     if (isPending) {
@@ -597,24 +615,26 @@ export default function Home() {
                 </div>
             </div>
             
-            {(selectedCandidate || comparisonData) && (
-                <div className="my-8 text-center">
-                    {selectedCandidate && (
-                         <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
-                             {isDownloading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                             <Download className="mr-2 h-5 w-5" />
-                             Download Report as PDF
-                         </Button>
-                    )}
-                    {comparisonData && (
-                         <Button size="lg" onClick={handleDownloadComparisonPdf} disabled={isDownloading}>
-                             {isDownloading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                             <Download className="mr-2 h-5 w-5" />
-                             Download Comparison as PDF
-                         </Button>
-                    )}
-                </div>
-            )}
+            <div className="my-8 text-center">
+                {(selectedCandidate || comparisonData) && (
+                    <>
+                        {selectedCandidate && (
+                            <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
+                                {isDownloading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                                <Download className="mr-2 h-5 w-5" />
+                                Download Full Report as PDF
+                            </Button>
+                        )}
+                        {comparisonData && (
+                            <Button size="lg" onClick={handleDownloadComparisonPdf} disabled={isDownloading}>
+                                {isDownloading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                                <Download className="mr-2 h-5 w-5" />
+                                Download Comparison as PDF
+                            </Button>
+                        )}
+                    </>
+                )}
+            </div>
 
             <div className="space-y-8">
               <FeatureCarousel />
