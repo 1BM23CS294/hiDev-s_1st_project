@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { CandidateReport } from './components/candidate-report';
+import { ComparisonReport } from './components/comparison-report';
 import { WelcomeSplash } from './components/welcome-splash';
 import { AnalysisLoading } from './components/analysis-loading';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -75,6 +76,7 @@ function getInitials(name: string) {
 export default function Home() {
   const [step, setStep] = useState(1);
   const [selectedCandidate, setSelectedCandidate] = useState<(AnalyzedCandidate & { firestoreId?: string; }) | null>(null);
+  const [comparisonData, setComparisonData] = useState<[AnalyzedCandidate, AnalyzedCandidate] | null>(null);
   const [resumeFileNames, setResumeFileNames] = useState<string[]>([]);
   const [videoFileName, setVideoFileName] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('');
@@ -124,9 +126,13 @@ export default function Home() {
   
   useEffect(() => {
     if (formState.success && formState.data && formState.data.length > 0) {
-        // Display the first new report automatically
-        const newReport = formState.data[0];
-        setSelectedCandidate(newReport);
+        if (formState.data.length === 2) {
+            setComparisonData(formState.data as [AnalyzedCandidate, AnalyzedCandidate]);
+            setSelectedCandidate(null);
+        } else {
+            setSelectedCandidate(formState.data[0]);
+            setComparisonData(null);
+        }
         
         toast({ 
             title: "Analysis Complete", 
@@ -181,16 +187,19 @@ export default function Home() {
 
   const handleHistoryClick = (candidate: AnalyzedCandidate & { firestoreId: string; }) => {
       setSelectedCandidate(candidate);
+      setComparisonData(null);
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
 
  const handleDownloadPdf = async () => {
-    if (!selectedCandidate) {
-      toast({
-        title: "No report selected",
-        description: "Please select an analysis report to download.",
-        variant: "destructive",
-      });
+    if (!selectedCandidate || isAnonymous) {
+      if(isAnonymous) {
+          toast({
+            title: "Guest Mode",
+            description: "Please sign up for an account to save and download reports.",
+            variant: "destructive",
+          });
+      }
       return;
     }
 
@@ -198,9 +207,8 @@ export default function Home() {
     const reportId = selectedCandidate.id;
 
     try {
-      // If the report is new and not yet saved, save it now and wait for it to complete.
-      if (!selectedCandidate.firestoreId && reportsCollection && user && !isAnonymous) {
-        const docRef = doc(reportsCollection, reportId); // Use UUID as doc ID
+      if (!selectedCandidate.firestoreId && reportsCollection && user) {
+        const docRef = doc(reportsCollection, reportId);
         
         const reportToSave: Omit<typeof selectedCandidate, 'firestoreId'> = { ...selectedCandidate };
         const reportData = {
@@ -209,22 +217,14 @@ export default function Home() {
           userId: user.uid,
         };
 
-        // Await the save operation to ensure data is available for the report page.
         await setDoc(docRef, reportData);
-        
-        // After successful save, update the local state to reflect that it's saved.
         setSelectedCandidate(prev => prev && prev.id === reportId ? { ...prev, firestoreId: reportId } : prev);
         
         toast({ title: 'Report saved to history' });
       }
-
-      // Now that we're sure it's saved (or was already saved), open the report page.
-      // The report page will now reliably fetch from Firestore.
       window.open(`/report/${reportId}`, '_blank');
-
     } catch (error: any) {
       console.error("Failed to save or download report:", error);
-
       if (error.code && error.code.startsWith('permission-denied') && reportsCollection) {
           const permissionError = new FirestorePermissionError({
               path: doc(reportsCollection, reportId).path,
@@ -232,10 +232,9 @@ export default function Home() {
           });
           errorEmitter.emit('permission-error', permissionError);
       }
-      
       toast({
         title: "Download Failed",
-        description: "Could not save the report to history. Please check your connection or permissions.",
+        description: "Could not save the report. Please check permissions.",
         variant: "destructive",
       });
     } finally {
@@ -243,10 +242,60 @@ export default function Home() {
     }
   };
 
+  const handleDownloadComparisonPdf = async () => {
+    if (!comparisonData || !reportsCollection || !user || isAnonymous) {
+        if(isAnonymous) {
+          toast({
+            title: "Guest Mode",
+            description: "Please sign up for an account to save and download reports.",
+            variant: "destructive",
+          });
+        }
+        return;
+    }
+    setIsDownloading(true);
+    try {
+        const [candidateA, candidateB] = comparisonData;
+        let idA = candidateA.firestoreId;
+        let idB = candidateB.firestoreId;
+
+        const saveReport = async (candidate: AnalyzedCandidate, existingId: string | undefined) => {
+            if (existingId) return existingId;
+            const docRef = doc(reportsCollection, candidate.id);
+            const reportToSave: Omit<typeof candidate, 'firestoreId'> = { ...candidate };
+            await setDoc(docRef, {
+                reportJson: JSON.stringify(reportToSave),
+                createdAt: serverTimestamp(),
+                userId: user.uid,
+            });
+            return candidate.id;
+        };
+
+        [idA, idB] = await Promise.all([
+            saveReport(candidateA, idA),
+            saveReport(candidateB, idB)
+        ]);
+
+        window.open(`/report/compare?ids=${idA},${idB}`, '_blank');
+
+    } catch (error: any) {
+        console.error("Failed to save or download comparison report:", error);
+        toast({
+            title: "Download Failed",
+            description: "Could not save the reports to history. Please check your permissions.",
+            variant: "destructive",
+        });
+    } finally {
+        setIsDownloading(false);
+    }
+ };
 
   const renderMainPanelContent = () => {
     if (isPending) {
       return <AnalysisLoading />;
+    }
+    if (comparisonData) {
+      return <ComparisonReport data={comparisonData} />;
     }
     if (selectedCandidate) {
       return <CandidateReport data={selectedCandidate} />;
@@ -330,7 +379,7 @@ export default function Home() {
                                         <Button type="button" variant="outline" className="w-full bg-black/20 hover:bg-accent/50 border-border/50" onClick={(e) => (e.currentTarget.previousSibling as HTMLInputElement)?.click()}>
                                             {resumeFileNames.length > 0 ? <span className="truncate text-primary">{resumeFileNames.length} resume(s) selected</span> : 'Select resume(s)...'}
                                         </Button>
-                                        <p className="text-xs text-muted-foreground text-center">Supports any resume format (PDF, DOCX, images, etc.). The AI is designed to handle diverse layouts.</p>
+                                        <p className="text-xs text-muted-foreground text-center">Upload 1 resume for a single analysis, or 2 for a side-by-side comparison.</p>
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="country" className='flex items-center gap-2'><Globe size={16} /> Country</Label>
@@ -498,13 +547,22 @@ export default function Home() {
                 </div>
             </div>
             
-            {selectedCandidate && (
+            {(selectedCandidate || comparisonData) && (
                 <div className="my-8 text-center">
-                    <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading || !selectedCandidate}>
-                        {(isDownloading) && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                        <Download className="mr-2 h-5 w-5" />
-                        Download Full Report as PDF
-                    </Button>
+                    {selectedCandidate && (
+                         <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading}>
+                             {isDownloading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                             <Download className="mr-2 h-5 w-5" />
+                             Download Report as PDF
+                         </Button>
+                    )}
+                    {comparisonData && (
+                         <Button size="lg" onClick={handleDownloadComparisonPdf} disabled={isDownloading}>
+                             {isDownloading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                             <Download className="mr-2 h-5 w-5" />
+                             Download Comparison as PDF
+                         </Button>
+                    )}
                 </div>
             )}
 
