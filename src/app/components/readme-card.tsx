@@ -34,14 +34,17 @@ If you want to run this project on your own computer, follow these simple steps.
     npm install
     \`\`\`
 
-2.  **Get Your Google AI Key:**
-    The AI features in this app are powered by Google. You need a special key to use them.
-    *   Go to [Google AI Studio](https://aistudio.google.com/app/apikey) to get your free API key.
+2.  **Get Your Free Google AI API Key:**
+    The AI features in this app are powered by Google. To use them, you need your own personal (and free) API key.
+
+    *   **Why do I need my own key?** Your API key is like a password for using Google's AI. It's unique to you and must be kept secret. We cannot provide a shared key for security reasons.
+
+    *   Go to **[Google AI Studio](https://aistudio.google.com/app/apikey)** to get your free key. It's a quick and simple process.
 
 3.  **Add Your Key to the Project:**
     *   In the main project folder, find the file named \`.env\`.
-    *   Open it and you will see a line that says \`GEMINI_API_KEY="YOUR_API_KEY_HERE"\`.
-    *   Replace \`"YOUR_API_KEY_HERE"\` with the key you just got from Google.
+    *   Open it, and you will see this line: \`GEMINI_API_KEY="YOUR_API_KEY_HERE"\`.
+    *   Replace \`"YOUR_API_KEY_HERE"\` with the unique key you just got from Google.
 
 4.  **Start the App:**
     Now, run this command in your terminal:
