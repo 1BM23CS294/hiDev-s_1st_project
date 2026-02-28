@@ -77,6 +77,7 @@ export default function Home() {
   const [resumeFileNames, setResumeFileNames] = useState<string[]>([]);
   const [videoFileName, setVideoFileName] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('');
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const initialState = { success: false, message: '', data: undefined, errors: undefined };
   const [formState, formAction, isPending] = useActionState(analyzeResume, initialState);
@@ -125,29 +126,10 @@ export default function Home() {
         // Display the first new report automatically
         const newReport = formState.data[0];
         setSelectedCandidate(newReport);
-
-        // Save the new analysis reports to Firestore
-        if (reportsCollection && user) {
-            formState.data.forEach(candidate => {
-                const reportData = {
-                    reportJson: JSON.stringify(candidate),
-                    createdAt: serverTimestamp(),
-                    userId: user.uid,
-                };
-                addDoc(reportsCollection, reportData).catch((error) => {
-                    const permissionError = new FirestorePermissionError({
-                        path: reportsCollection.path,
-                        operation: 'create',
-                        requestResourceData: reportData,
-                    });
-                    errorEmitter.emit('permission-error', permissionError);
-                });
-            });
-        }
         
         toast({ 
             title: "Analysis Complete", 
-            description: "Your report is now displayed below. It has also been saved to your history."
+            description: "Your report is now displayed below."
         });
 
         // Scroll to the results panel
@@ -164,7 +146,7 @@ export default function Home() {
             variant: 'destructive',
         });
     }
-  }, [formState, isPending, user, reportsCollection, toast]);
+  }, [formState, isPending, toast]);
 
   const handleDeleteReport = (reportId: string, ownerId: string) => {
     if(!user || !firestore || user.uid !== ownerId) return;
@@ -201,7 +183,7 @@ export default function Home() {
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
 
-  const handleDownloadPdf = () => {
+  const handleDownloadPdf = async () => {
     if (!selectedCandidate) {
       toast({
         title: "No report selected",
@@ -210,17 +192,64 @@ export default function Home() {
       });
       return;
     }
-    try {
-      localStorage.setItem('printableReport', JSON.stringify(selectedCandidate));
-      window.open('/report', '_blank');
-    } catch (error) {
-      console.error("Error saving report to localStorage", error);
-      toast({
-        title: "Download Failed",
-        description: "Could not prepare the report for download. It might be too large.",
-        variant: "destructive",
-      });
+
+    setIsDownloading(true);
+    let reportId = selectedCandidate.firestoreId;
+
+    // If the report is new and doesn't have an ID, save it to get one.
+    if (!reportId && reportsCollection && user && !isAnonymous) {
+      // Create a clean copy of the report object without the undefined firestoreId
+      const reportToSave: Omit<typeof selectedCandidate, 'firestoreId'> = { ...selectedCandidate };
+      
+      const reportData = {
+          reportJson: JSON.stringify(reportToSave),
+          createdAt: serverTimestamp(),
+          userId: user.uid,
+      };
+      try {
+          const docRef = await addDoc(reportsCollection, reportData);
+          reportId = docRef.id;
+          // Update the state so the ID is available for next time
+          setSelectedCandidate(prev => prev ? { ...prev, firestoreId: reportId } : null);
+          toast({
+            title: "Report Saved",
+            description: "The analysis has been saved to your history.",
+          });
+      } catch (error) {
+          const permissionError = new FirestorePermissionError({
+              path: reportsCollection.path,
+              operation: 'create',
+              requestResourceData: reportData,
+          });
+          errorEmitter.emit('permission-error', permissionError);
+          toast({
+              title: "Failed to Save Report",
+              description: "Could not save the report to generate a download link. Please try again.",
+              variant: "destructive",
+          });
+          setIsDownloading(false);
+          return;
+      }
+    } else if (isAnonymous) {
+        toast({
+            title: 'Guest Mode',
+            description: 'Signing up for a free account will allow you to save and download reports.',
+            variant: 'destructive',
+        });
+        setIsDownloading(false);
+        return;
     }
+    
+    if (reportId) {
+        window.open(`/report/${reportId}`, '_blank');
+    } else {
+         toast({
+            title: "Report ID Missing",
+            description: "Could not generate a download link for this report.",
+            variant: "destructive",
+        });
+    }
+    setIsDownloading(false);
   };
 
   const renderMainPanelContent = () => {
@@ -478,7 +507,8 @@ export default function Home() {
             
             {selectedCandidate && (
                 <div className="my-8 text-center">
-                    <Button size="lg" onClick={handleDownloadPdf}>
+                    <Button size="lg" onClick={handleDownloadPdf} disabled={isDownloading || !selectedCandidate}>
+                        {(isDownloading) && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
                         <Download className="mr-2 h-5 w-5" />
                         Download Full Report as PDF
                     </Button>
