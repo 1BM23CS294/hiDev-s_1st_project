@@ -77,7 +77,9 @@ export default function Home() {
   const [step, setStep] = useState(1);
   const [selectedCandidate, setSelectedCandidate] = useState<(AnalyzedCandidate & { firestoreId?: string; }) | null>(null);
   const [comparisonData, setComparisonData] = useState<[AnalyzedCandidate, AnalyzedCandidate] | null>(null);
-  const [resumeFileNames, setResumeFileNames] = useState<string[]>([]);
+  const [analysisType, setAnalysisType] = useState<'single' | 'comparison'>('single');
+  const [resumeFile1Name, setResumeFile1Name] = useState<string>('');
+  const [resumeFile2Name, setResumeFile2Name] = useState<string>('');
   const [videoFileName, setVideoFileName] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);
@@ -143,7 +145,8 @@ export default function Home() {
         setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
 
         formRef.current?.reset();
-        setResumeFileNames([]);
+        setResumeFile1Name('');
+        setResumeFile2Name('');
         setVideoFileName('');
         setStep(1);
     } else if (!formState.success && formState.message && !isPending && formRef.current?.dataset.submitted) {
@@ -368,20 +371,67 @@ export default function Home() {
                     <form ref={formRef} action={handleFormAction} className="space-y-4">
                         <div className={cn("space-y-4", step !== 1 && "hidden")}>
                                 <h2 className='text-lg font-semibold text-primary'>Step 1: Core Information</h2>
+                                
+                                <div className="space-y-2">
+                                    <Label className='flex items-center gap-2'><Users size={16} /> Analysis Type</Label>
+                                    <RadioGroup
+                                        defaultValue="single"
+                                        onValueChange={(value: 'single' | 'comparison') => {
+                                            setAnalysisType(value);
+                                            setResumeFile1Name('');
+                                            setResumeFile2Name('');
+                                        }}
+                                        className="grid grid-cols-2 gap-4"
+                                    >
+                                        <div>
+                                            <RadioGroupItem value="single" id="type-single" className="peer sr-only" />
+                                            <Label htmlFor="type-single" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                                                Single Resume
+                                            </Label>
+                                        </div>
+                                        <div>
+                                            <RadioGroupItem value="comparison" id="type-comparison" className="peer sr-only" />
+                                            <Label htmlFor="type-comparison" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
+                                                Compare Two
+                                            </Label>
+                                        </div>
+                                    </RadioGroup>
+                                </div>
+                                
                                 <div className="space-y-2">
                                     <Label htmlFor="job-description" className='flex items-center gap-2'><FileText size={16} /> Job Description</Label>
                                     <Textarea id="job-description" name="jobDescription" placeholder="Paste the job description here..." className="min-h-[120px] bg-black/20 border-border/50" required />
                                 </div>
+                                
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="resume-file" className='flex items-center gap-2'><UploadCloud size={16} /> Resume Upload</Label>
-                                        <Input id="resume-file" name="resumeFile" type="file" multiple onChange={(e) => setResumeFileNames(e.target.files ? Array.from(e.target.files).map(f => f.name) : [])} className="hidden" accept="*/*"/>
-                                        <Button type="button" variant="outline" className="w-full bg-black/20 hover:bg-accent/50 border-border/50" onClick={(e) => (e.currentTarget.previousSibling as HTMLInputElement)?.click()}>
-                                            {resumeFileNames.length > 0 ? <span className="truncate text-primary">{resumeFileNames.length} resume(s) selected</span> : 'Select resume(s)...'}
-                                        </Button>
-                                        <p className="text-xs text-muted-foreground text-center">Upload 1 resume for a single analysis, or 2 for a side-by-side comparison.</p>
-                                    </div>
-                                    <div className="space-y-2">
+                                     {analysisType === 'single' ? (
+                                        <div className="space-y-2">
+                                            <Label htmlFor="resume-file-1" className='flex items-center gap-2'><UploadCloud size={16} /> Resume Upload</Label>
+                                            <Input id="resume-file-1" name="resumeFile" type="file" onChange={(e) => setResumeFile1Name(e.target.files?.[0]?.name || '')} className="hidden" accept="*/*"/>
+                                            <Button type="button" variant="outline" className="w-full bg-black/20 hover:bg-accent/50 border-border/50" onClick={(e) => (e.currentTarget.previousSibling as HTMLInputElement)?.click()}>
+                                                {resumeFile1Name ? <span className="truncate text-primary">{resumeFile1Name}</span> : 'Select a resume...'}
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="resume-file-1" className='flex items-center gap-2'><UploadCloud size={16} /> Resume 1</Label>
+                                                <Input id="resume-file-1" name="resumeFile" type="file" onChange={(e) => setResumeFile1Name(e.target.files?.[0]?.name || '')} className="hidden" accept="*/*"/>
+                                                <Button type="button" variant="outline" className="w-full bg-black/20 hover:bg-accent/50 border-border/50" onClick={(e) => (e.currentTarget.previousSibling as HTMLInputElement)?.click()}>
+                                                    {resumeFile1Name ? <span className="truncate text-primary">{resumeFile1Name}</span> : 'Select Resume 1...'}
+                                                </Button>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="resume-file-2" className='flex items-center gap-2'><UploadCloud size={16} /> Resume 2</Label>
+                                                <Input id="resume-file-2" name="resumeFile" type="file" onChange={(e) => setResumeFile2Name(e.target.files?.[0]?.name || '')} className="hidden" accept="*/*"/>
+                                                <Button type="button" variant="outline" className="w-full bg-black/20 hover:bg-accent/50 border-border/50" onClick={(e) => (e.currentTarget.previousSibling as HTMLInputElement)?.click()}>
+                                                    {resumeFile2Name ? <span className="truncate text-primary">{resumeFile2Name}</span> : 'Select Resume 2...'}
+                                                </Button>
+                                            </div>
+                                        </>
+                                    )}
+
+                                    <div className={cn("space-y-2", analysisType === 'comparison' && 'md:col-span-2')}>
                                         <Label htmlFor="country" className='flex items-center gap-2'><Globe size={16} /> Country</Label>
                                         <Select name="country" required onValueChange={setSelectedCountry}>
                                             <SelectTrigger className="w-full bg-black/20 border-border/50"><SelectValue placeholder="Select a country..." /></SelectTrigger>
