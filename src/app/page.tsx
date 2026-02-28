@@ -33,7 +33,6 @@ import { HowToUse } from './components/how-to-use';
 import { RoadmapCard } from './components/roadmap-card';
 import { FeedbackCard } from './components/feedback-card';
 import { analyzeResume } from '@/app/actions';
-import { GuestAccessCard } from './components/guest-access-card';
 import { CaseSensitive, Flame, GitCompareArrows, Globe, School, Search, Sparkles, TrendingDown, UserCheck, UserRound, Video, Fingerprint, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 
@@ -453,7 +452,6 @@ export default function Home() {
                             </ScrollArea>
                         </CardContent>
                     </Card>
-                    {!isAnonymous && <GuestAccessCard />}
                     <FeedbackCard />
                 </div>
             </div>

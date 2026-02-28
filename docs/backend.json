@@ -37,15 +37,6 @@
           "type": "string",
           "description": "Timestamp when the user account was last updated.",
           "format": "date-time"
-        },
-        "guests": {
-          "type": "array",
-          "description": "A list of email addresses for users who have guest access to this user's dashboard. Maximum of 5 guests.",
-          "items": {
-            "type": "string",
-            "format": "email"
-          },
-          "maxItems": 5
         }
       },
       "required": [

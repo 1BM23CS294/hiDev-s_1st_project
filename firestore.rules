@@ -1,13 +1,11 @@
 /**
  * Core Philosophy: This ruleset enforces a strict private data model where users can
- * only access their own data, unless they have been granted guest access.
+ * only access their own data.
  *
  * Data Structure: Each user's data is stored under `/users/{userId}`.
  *
  * Key Security Decisions:
  * - All data is private to the owner by default.
- * - Guests, defined in the `/users/{userId}.guests` array, have read-only access
- *   to the host's user profile and analysis reports.
  * - User enumeration is not allowed (listing `/users` is disallowed).
  * - Document IDs in subcollections must match the parent `userId` for data integrity.
  */
@@ -27,15 +25,6 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // A user is a guest if their email is in the host's `guests` array.
-    // This requires a document read, which is allowed in `get` and `list` rules.
-    function isGuest(hostId) {
-      return isSignedIn()
-        && exists(/databases/$(database)/documents/users/$(hostId))
-        && 'guests' in get(/databases/$(database)/documents/users/$(hostId)).data
-        && request.auth.token.email in get(/databases/$(database)/documents/users/$(hostId)).data.guests;
-    }
-
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
     }
@@ -46,7 +35,6 @@ service cloud.firestore {
     }
     
     // Ensures the immutable `id` field is not changed on update.
-    // Allows updating the 'guests' array.
     function isValidUserDocOnUpdate() {
       let immutableFields = ['id', 'email', 'createdAt'];
       return request.resource.data.diff(resource.data).affectedKeys().toSet().hasOnly(immutableFields.toSet().complement()) == true;
@@ -68,7 +56,7 @@ service cloud.firestore {
     //-------------------------------------------------------------------------//
 
     match /users/{userId} {
-      allow get: if isOwner(userId) || isGuest(userId);
+      allow get: if isOwner(userId);
       allow list: if false; // Disallow listing all users.
       allow create: if isOwner(userId) && isValidUserDocOnCreate(userId);
       allow update: if isExistingOwner(userId);
@@ -90,7 +78,7 @@ service cloud.firestore {
     }
     
     match /users/{userId}/analysisReports/{analysisReportId} {
-      allow get, list: if isOwner(userId) || isGuest(userId);
+      allow get, list: if isOwner(userId);
       allow create: if isOwner(userId) && isValidSubcollectionDocOnCreate(userId);
       allow update: if isExistingOwner(userId) && isValidSubcollectionDocOnUpdate();
       allow delete: if isExistingOwner(userId);
