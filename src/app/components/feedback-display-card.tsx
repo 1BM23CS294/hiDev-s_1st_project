@@ -1,15 +1,18 @@
 'use client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Star } from 'lucide-react';
+import { Star, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, limit, orderBy, query, Timestamp } from 'firebase/firestore';
+import { useCollection, useFirestore, useMemoFirebase, useUser, FirestorePermissionError, errorEmitter } from '@/firebase';
+import { collection, limit, orderBy, query, Timestamp, doc, deleteDoc } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 type Feedback = {
     id: string;
+    userId: string;
     userName: string;
     userPhotoURL: string | null;
     rating: number;
@@ -19,6 +22,8 @@ type Feedback = {
 
 export function FeedbackDisplayCard({ className }: { className?: string }) {
     const firestore = useFirestore();
+    const { user } = useUser();
+    const { toast } = useToast();
 
     const feedbackQuery = useMemoFirebase(() => {
         if (!firestore) return null;
@@ -28,6 +33,41 @@ export function FeedbackDisplayCard({ className }: { className?: string }) {
     const { data: feedbacks, isLoading, error } = useCollection<Feedback>(feedbackQuery);
 
     const getInitials = (name: string) => name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'GU';
+
+    const handleDelete = (feedbackId: string) => {
+        if (!firestore || !user) {
+            toast({
+                title: 'Authentication Error',
+                description: 'You must be signed in to perform this action.',
+                variant: 'destructive',
+            });
+            return;
+        }
+
+        const feedbackRef = doc(firestore, 'feedback', feedbackId);
+        
+        deleteDoc(feedbackRef)
+            .then(() => {
+                toast({
+                    title: 'Feedback Deleted',
+                    description: 'Your feedback has been successfully removed.',
+                });
+            })
+            .catch((serverError) => {
+                const permissionError = new FirestorePermissionError({
+                    path: feedbackRef.path,
+                    operation: 'delete',
+                });
+                errorEmitter.emit('permission-error', permissionError);
+                
+                toast({
+                    title: 'Deletion Failed',
+                    description: 'You may not have permission to delete this feedback.',
+                    variant: 'destructive',
+                });
+            });
+    };
+
 
     const renderContent = () => {
         if (isLoading) {
@@ -52,7 +92,7 @@ export function FeedbackDisplayCard({ className }: { className?: string }) {
         }
 
         return feedbacks.map((feedback) => (
-            <div key={feedback.id} className="flex items-start gap-4">
+            <div key={feedback.id} className="group/feedback flex items-start gap-4">
                 <Avatar className='h-10 w-10'>
                     <AvatarImage src={feedback.userPhotoURL ?? undefined} alt={feedback.userName} />
                     <AvatarFallback>{getInitials(feedback.userName)}</AvatarFallback>
@@ -73,11 +113,23 @@ export function FeedbackDisplayCard({ className }: { className?: string }) {
                         </div>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">{feedback.comments}</p>
-                    {feedback.createdAt && (
-                         <p className='text-xs text-muted-foreground/70 mt-2'>
-                            {formatDistanceToNow(feedback.createdAt.toDate(), { addSuffix: true })}
-                        </p>
-                    )}
+                    <div className="flex justify-between items-center">
+                        {feedback.createdAt && (
+                             <p className='text-xs text-muted-foreground/70 mt-2'>
+                                {formatDistanceToNow(feedback.createdAt.toDate(), { addSuffix: true })}
+                            </p>
+                        )}
+                        {user && user.uid === feedback.userId && (
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-muted-foreground opacity-0 transition-opacity group-hover/feedback:opacity-100"
+                                onClick={() => handleDelete(feedback.id)}
+                            >
+                                <Trash2 size={14} />
+                            </Button>
+                        )}
+                    </div>
                 </div>
             </div>
         ));
