@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useActionState } from 'react';
-import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, Languages, Bot, ArrowRight, ArrowLeft, Lightbulb, Info, Rocket, Medal, Files, Filter, FileJson, Ship, Briefcase, BookOpen, ClipboardCheck, BookMarked, HandCoins, Wallet, Target, Goal, Layers, Hourglass, Map } from 'lucide-react';
+import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, Languages, Bot, ArrowRight, ArrowLeft, Lightbulb, Info, Rocket, Medal, Files, Filter, FileJson, Ship, Briefcase } from 'lucide-react';
 import type { AnalyzedCandidate } from '@/lib/types';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -364,24 +364,6 @@ export default function Home() {
                                     <div className="flex items-center space-x-2"><Checkbox id="country-specific-rules" name="countrySpecificRules" defaultChecked={true} /><Label htmlFor="country-specific-rules" className='flex items-center gap-2 text-muted-foreground'><Globe size={16}/>Country-Specific Rules</Label></div>
                                     <div className="flex items-center space-x-2"><Checkbox id="visa-readiness" name="visaReadiness" defaultChecked={true} /><Label htmlFor="visa-readiness" className='flex items-center gap-2 text-muted-foreground'><Ship size={16}/>Visa Sponsorship Readiness</Label></div>
                                     <div className="flex items-center space-x-2"><Checkbox id="export-formats" name="exportFormats" defaultChecked={true} /><Label htmlFor="export-formats" className='flex items-center gap-2 text-muted-foreground'><FileJson size={16}/>Resume Export Formats</Label></div>
-                                </CardContent>
-                            </Card>
-                            
-                            <Card className="p-4 border-border/50 bg-black/20">
-                                <CardHeader className='p-0 pb-4'>
-                                    <CardTitle className='flex items-center gap-2 text-base'><Briefcase size={18}/> Career Development Modules</CardTitle>
-                                </CardHeader>
-                                <CardContent className='p-0 grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                                    <div className="flex items-center space-x-2"><Checkbox id="generate-project-ideas" name="generateProjectIdeas" defaultChecked={true} /><Label htmlFor="generate-project-ideas" className='flex items-center gap-2 text-muted-foreground'><BookOpen size={16}/>Project Idea Generator</Label></div>
-                                    <div className="flex items-center space-x-2"><Checkbox id="suggest-certifications" name="suggestCertifications" defaultChecked={true} /><Label htmlFor="suggest-certifications" className='flex items-center gap-2 text-muted-foreground'><ClipboardCheck size={16}/>Certification Suggestions</Label></div>
-                                    <div className="flex items-center space-x-2"><Checkbox id="recommend-courses" name="recommendCourses" defaultChecked={true} /><Label htmlFor="recommend-courses" className='flex items-center gap-2 text-muted-foreground'><BookMarked size={16}/>Course Recommendations</Label></div>
-                                    <div className="flex items-center space-x-2"><Checkbox id="recommend-side-hustles" name="recommendSideHustles" defaultChecked={true} /><Label htmlFor="recommend-side-hustles" className='flex items-center gap-2 text-muted-foreground'><HandCoins size={16}/>Side Hustle Ideas</Label></div>
-                                    <div className="flex items-center space-x-2"><Checkbox id="estimate-freelance-pricing" name="estimateFreelancePricing" defaultChecked={true} /><Label htmlFor="estimate-freelance-pricing" className='flex items-center gap-2 text-muted-foreground'><Wallet size={16}/>Freelance Pricing Estimator</Label></div>
-                                    <div className="flex items-center space-x-2"><Checkbox id="generate-swot-analysis" name="generateSwotAnalysis" defaultChecked={true} /><Label htmlFor="generate-swot-analysis" className='flex items-center gap-2 text-muted-foreground'><Target size={16}/>Personal SWOT Analysis</Label></div>
-                                    <div className="flex items-center space-x-2"><Checkbox id="map-strengths-to-careers" name="mapStrengthsToCareers" defaultChecked={true} /><Label htmlFor="map-strengths-to-careers" className='flex items-center gap-2 text-muted-foreground'><Goal size={16}/>Strength-to-Career Map</Label></div>
-                                    <div className="flex items-center space-x-2"><Checkbox id="optimize-skill-stack" name="optimizeSkillStack" defaultChecked={true} /><Label htmlFor="optimize-skill-stack" className='flex items-center gap-2 text-muted-foreground'><Layers size={16}/>Skill Stack Optimizer</Label></div>
-                                    <div className="flex items-center space-x-2"><Checkbox id="estimate-time-to-employability" name="estimateTimeToEmployability" defaultChecked={true} /><Label htmlFor="estimate-time-to-employability" className='flex items-center gap-2 text-muted-foreground'><Hourglass size={16}/>Time-to-Employability</Label></div>
-                                    <div className="flex items-center space-x-2"><Checkbox id="generate-career-plan" name="generateCareerPlan" defaultChecked={true} /><Label htmlFor="generate-career-plan" className='flex items-center gap-2 text-muted-foreground'><Map size={16}/>30-60-90 Day Plan</Label></div>
                                 </CardContent>
                             </Card>
                         </div>

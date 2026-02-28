@@ -23,16 +23,6 @@ import {
   getResumeExports,
   getCountryResumeRules,
   assessVisaSponsorship,
-  generateProjectIdeas,
-  suggestCertifications,
-  recommendCourses,
-  recommendSideHustles,
-  estimateFreelancePricing,
-  generateSwotAnalysis,
-  mapStrengthsToCareers,
-  optimizeSkillStack,
-  estimateTimeToEmployability,
-  generateCareerPlan,
 } from '@/ai/flows';
 import type {
   AnalyzedCandidate,
@@ -71,18 +61,6 @@ const AnalyzeResumeSchema = z.object({
   countrySpecificRules: z.coerce.boolean().default(true),
   visaReadiness: z.coerce.boolean().default(true),
   exportFormats: z.coerce.boolean().default(true),
-
-  // Career Development Modules
-  generateProjectIdeas: z.coerce.boolean().default(true),
-  suggestCertifications: z.coerce.boolean().default(true),
-  recommendCourses: z.coerce.boolean().default(true),
-  recommendSideHustles: z.coerce.boolean().default(true),
-  estimateFreelancePricing: z.coerce.boolean().default(true),
-  generateSwotAnalysis: z.coerce.boolean().default(true),
-  mapStrengthsToCareers: z.coerce.boolean().default(true),
-  optimizeSkillStack: z.coerce.boolean().default(true),
-  estimateTimeToEmployability: z.coerce.boolean().default(true),
-  generateCareerPlan: z.coerce.boolean().default(true),
 
 }).superRefine((data, ctx) => {
   if (data.analyzeVideo && !data.videoFile) {
@@ -182,16 +160,6 @@ async function _analyzeSingleResume(
         countrySpecificRules,
         visaReadiness,
         exportFormats,
-        generateProjectIdeas: shouldGenerateProjectIdeas,
-        suggestCertifications: shouldSuggestCertifications,
-        recommendCourses: shouldRecommendCourses,
-        recommendSideHustles: shouldRecommendSideHustles,
-        estimateFreelancePricing: shouldEstimateFreelancePricing,
-        generateSwotAnalysis: shouldGenerateSwotAnalysis,
-        mapStrengthsToCareers: shouldMapStrengthsToCareers,
-        optimizeSkillStack: shouldOptimizeSkillStack,
-        estimateTimeToEmployability: shouldEstimateTimeToEmployability,
-        generateCareerPlan: shouldGenerateCareerPlan,
     } = options;
 
     const fileToDataUri = async (file: File) => {
@@ -238,16 +206,6 @@ async function _analyzeSingleResume(
         resumeExportsResult,
         countryRulesResult,
         visaSponsorshipResult,
-        projectIdeasResult,
-        certificationsResult,
-        coursesResult,
-        sideHustlesResult,
-        freelancePricingResult,
-        swotAnalysisResult,
-        careerMappingResult,
-        skillStackResult,
-        timeToEmployabilityResult,
-        careerPlanResult,
     ] = await Promise.all([
         generateResumeMatchScore({ resumeSkills: extractedInfo.skills, resumeExperience: resumeExperienceSummary, jobDescription }),
         generateHiringRecommendations({ parsedResume: parsedResumeForHiringRecs, jobDescription }),
@@ -273,16 +231,6 @@ async function _analyzeSingleResume(
         exportFormats ? getResumeExports({ resumeData: JSON.stringify(extractedInfo) }) : Promise.resolve(null),
         countrySpecificRules ? getCountryResumeRules({ country }) : Promise.resolve(null),
         visaReadiness ? assessVisaSponsorship({ country, jobTitle: extractedInfo.experience[0]?.title || 'Engineer', skills: extractedInfo.skills }) : Promise.resolve(null),
-        shouldGenerateProjectIdeas ? generateProjectIdeas({ missingSkills: recommendations?.skillsGap || [] }) : Promise.resolve(null),
-        shouldSuggestCertifications ? suggestCertifications({ jobTitle: extractedInfo.experience[0]?.title || 'Engineer', skills: extractedInfo.skills }) : Promise.resolve(null),
-        shouldRecommendCourses ? recommendCourses({ resumeSummary: resumeFullTextForProfiling, missingSkills: recommendations?.skillsGap || [] }) : Promise.resolve(null),
-        shouldRecommendSideHustles ? recommendSideHustles({ skills: extractedInfo.skills }) : Promise.resolve(null),
-        shouldEstimateFreelancePricing ? estimateFreelancePricing({ jobTitle: extractedInfo.experience[0]?.title || 'Developer', experienceLevel: 'mid', country: country }) : Promise.resolve(null),
-        shouldGenerateSwotAnalysis ? generateSwotAnalysis({ resumeSummary: resumeFullTextForProfiling }) : Promise.resolve(null),
-        shouldMapStrengthsToCareers ? mapStrengthsToCareers({ keyStrengths: confidenceReportResult?.keyStrengths || [] }) : Promise.resolve(null),
-        shouldOptimizeSkillStack ? optimizeSkillStack({ currentStack: extractedInfo.skills, targetRole: 'Senior ' + (extractedInfo.experience[0]?.title || 'Developer') }) : Promise.resolve(null),
-        shouldEstimateTimeToEmployability ? estimateTimeToEmployability({ missingSkills: recommendations?.skillsGap || [], experienceGaps: recommendations?.weaknesses || [] }) : Promise.resolve(null),
-        shouldGenerateCareerPlan ? generateCareerPlan({ currentRole: extractedInfo.experience[0]?.title || 'Developer', targetRole: 'Senior Developer', resumeSummary: resumeFullTextForProfiling }) : Promise.resolve(null),
     ]);
 
     const result: AnalyzedCandidate = {
@@ -311,16 +259,6 @@ async function _analyzeSingleResume(
         resumeExports: resumeExportsResult || undefined,
         countryRules: countryRulesResult || undefined,
         visaSponsorship: visaSponsorshipResult || undefined,
-        projectIdeas: projectIdeasResult || undefined,
-        certifications: certificationsResult || undefined,
-        courses: coursesResult || undefined,
-        sideHustles: sideHustlesResult || undefined,
-        freelancePricing: freelancePricingResult || undefined,
-        swotAnalysis: swotAnalysisResult || undefined,
-        careerMapping: careerMappingResult || undefined,
-        skillStack: skillStackResult || undefined,
-        timeToEmployability: timeToEmployabilityResult || undefined,
-        careerPlan: careerPlanResult || undefined,
     };
     return result;
 }
@@ -353,17 +291,6 @@ export async function analyzeResume(prevState: FormState | null, formData: FormD
       countrySpecificRules: allEntries.countrySpecificRules,
       visaReadiness: allEntries.visaReadiness,
       exportFormats: allEntries.exportFormats,
-      // Career Dev
-      generateProjectIdeas: allEntries.generateProjectIdeas,
-      suggestCertifications: allEntries.suggestCertifications,
-      recommendCourses: allEntries.recommendCourses,
-      recommendSideHustles: allEntries.recommendSideHustles,
-      estimateFreelancePricing: allEntries.estimateFreelancePricing,
-      generateSwotAnalysis: allEntries.generateSwotAnalysis,
-      mapStrengthsToCareers: allEntries.mapStrengthsToCareers,
-      optimizeSkillStack: allEntries.optimizeSkillStack,
-      estimateTimeToEmployability: allEntries.estimateTimeToEmployability,
-      generateCareerPlan: allEntries.generateCareerPlan,
   };
 
   const videoFile = formData.get('videoFile');
