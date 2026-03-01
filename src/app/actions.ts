@@ -20,7 +20,6 @@ import {
   rankCandidate,
   benchmarkCandidate,
   getHiringFunnelInsights,
-  getResumeExports,
   getCountryResumeRules,
   assessVisaSponsorship,
 } from '@/ai/flows';
@@ -60,7 +59,6 @@ const AnalyzeResumeSchema = z.object({
   hiringFunnelInsights: z.coerce.boolean().default(true),
   countrySpecificRules: z.coerce.boolean().default(true),
   visaReadiness: z.coerce.boolean().default(true),
-  exportFormats: z.coerce.boolean().default(true),
 
 }).superRefine((data, ctx) => {
   if (data.analyzeVideo && !data.videoFile) {
@@ -159,7 +157,6 @@ async function _analyzeSingleResume(
         hiringFunnelInsights,
         countrySpecificRules,
         visaReadiness,
-        exportFormats,
     } = options;
 
     const fileToDataUri = async (file: File) => {
@@ -203,7 +200,6 @@ async function _analyzeSingleResume(
         rankingResult,
         benchmarkResult,
         funnelInsightsResult,
-        resumeExportsResult,
         countryRulesResult,
         visaSponsorshipResult,
     ] = await Promise.all([
@@ -228,7 +224,6 @@ async function _analyzeSingleResume(
         candidateRanking ? rankCandidate({ jobDescription }) : Promise.resolve(null),
         teamBenchmarking ? benchmarkCandidate({ skills: extractedInfo.skills }) : Promise.resolve(null),
         hiringFunnelInsights ? getHiringFunnelInsights({ jobDescription }) : Promise.resolve(null),
-        exportFormats ? getResumeExports({ resumeData: JSON.stringify(extractedInfo) }) : Promise.resolve(null),
         countrySpecificRules ? getCountryResumeRules({ country }) : Promise.resolve(null),
         visaReadiness ? assessVisaSponsorship({ country, jobTitle: extractedInfo.experience[0]?.title || 'Engineer', skills: extractedInfo.skills }) : Promise.resolve(null),
     ]);
@@ -256,7 +251,6 @@ async function _analyzeSingleResume(
         ranking: rankingResult || undefined,
         benchmark: benchmarkResult || undefined,
         funnelInsights: funnelInsightsResult || undefined,
-        resumeExports: resumeExportsResult || undefined,
         countryRules: countryRulesResult || undefined,
         visaSponsorship: visaSponsorshipResult || undefined,
     };
@@ -290,7 +284,6 @@ export async function analyzeResume(prevState: FormState | null, formData: FormD
       hiringFunnelInsights: allEntries.hiringFunnelInsights,
       countrySpecificRules: allEntries.countrySpecificRules,
       visaReadiness: allEntries.visaReadiness,
-      exportFormats: allEntries.exportFormats,
   };
 
   const videoFile = formData.get('videoFile');

@@ -4,7 +4,8 @@ import { ComparisonChart } from './comparison-chart';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { CircularProgress } from './circular-progress';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, ShieldAlert, DollarSign } from 'lucide-react';
+import { CheckCircle2, ShieldAlert, DollarSign, Printer } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 function getInitials(name: string) {
     if (!name) return '??';
@@ -87,7 +88,13 @@ export function ComparisonReport({ data }: { data: [AnalyzedCandidate, AnalyzedC
   return (
     <div className="w-full space-y-6">
         <div className="text-center">
-            <h2 className="text-2xl font-bold sm:text-3xl">Resume Comparison</h2>
+            <div className="flex flex-wrap items-center justify-center gap-4 mb-2">
+                <h2 className="text-2xl font-bold sm:text-3xl">Resume Comparison</h2>
+                <Button variant="outline" size="sm" onClick={() => window.print()} className="no-print">
+                    <Printer size={16} className="mr-2"/>
+                    Print Report
+                </Button>
+            </div>
             <p className="text-sm text-muted-foreground">Side-by-side analysis of two candidates.</p>
         </div>
         

@@ -90,4 +90,19 @@
   .rotate-y-180 {
     transform: rotateY(180deg);
   }
+  @media print {
+    body {
+        background-image: none !important;
+    }
+    .no-print {
+        display: none !important;
+    }
+    .print-section {
+        box-shadow: none !important;
+        border: none !important;
+        background: transparent !important;
+        backdrop-filter: none !important;
+        padding: 0 !important;
+    }
+  }
 }

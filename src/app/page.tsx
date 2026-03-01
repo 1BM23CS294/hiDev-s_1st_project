@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useActionState } from 'react';
-import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, Languages, Bot, ArrowRight, ArrowLeft, Lightbulb, Info, Rocket, Medal, Files, Filter, FileJson, Ship, Briefcase, Star, CaseSensitive, Flame, GitCompareArrows, Globe, School, Search, Sparkles, TrendingDown, UserCheck, UserRound, Video, Fingerprint, AlertTriangle } from 'lucide-react';
+import { FileText, UploadCloud, Users, Loader2, Trash2, LogOut, Languages, Bot, ArrowRight, ArrowLeft, Lightbulb, Info, Rocket, Medal, Files, Filter, Ship, Briefcase, Star, CaseSensitive, Flame, GitCompareArrows, Globe, School, Search, Sparkles, TrendingDown, UserCheck, UserRound, Video, Fingerprint, AlertTriangle } from 'lucide-react';
 import type { AnalyzedCandidate } from '@/lib/types';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -36,7 +36,6 @@ import { FeedbackCard } from './components/feedback-card';
 import { analyzeResume } from '@/app/actions';
 import Link from 'next/link';
 import { FeedbackDisplayCard } from './components/feedback-display-card';
-import { ReadmeCard } from './components/readme-card';
 
 
 function SubmitButton({ step, setStep, isPending }: { step: number; setStep: (step: number) => void; isPending: boolean; }) {
@@ -256,7 +255,7 @@ export default function Home() {
      <div className="relative min-h-svh w-full p-4 md:p-6 lg:p-8">
         <div className="max-w-screen-2xl mx-auto space-y-8">
             {isAnonymous && (
-                <Card className="bg-amber-900/30 border-amber-500/50 text-amber-200">
+                <Card className="bg-amber-900/30 border-amber-500/50 text-amber-200 no-print">
                     <CardHeader className="!pb-4">
                         <div className="flex items-center justify-between flex-wrap gap-2">
                             <CardTitle className="flex items-center gap-2"><Info size={18}/>Demo Mode</CardTitle>
@@ -268,7 +267,7 @@ export default function Home() {
                     </CardHeader>
                 </Card>
             )}
-            <Card className="bg-black/20 border-primary/20 backdrop-blur-xl shadow-2xl shadow-primary/20">
+            <Card className="bg-black/20 border-primary/20 backdrop-blur-xl shadow-2xl shadow-primary/20 no-print">
                 <CardHeader className="bg-black/20 rounded-t-lg">
                     <div className="flex items-center justify-between">
                         <h1 className="text-xl font-bold">Intelligent Resume Analyzer</h1>
@@ -423,12 +422,11 @@ export default function Home() {
 
                             <Card className="p-4 border-border/50 bg-black/20">
                                 <CardHeader className='p-0 pb-4'>
-                                    <CardTitle className='flex items-center gap-2 text-base'><Globe size={18}/> International & Export Features</CardTitle>
+                                    <CardTitle className='flex items-center gap-2 text-base'><Globe size={18}/> International Features</CardTitle>
                                 </CardHeader>
                                 <CardContent className='p-0 grid grid-cols-1 sm:grid-cols-2 gap-4'>
                                     <div className="flex items-center space-x-2"><Checkbox id="country-specific-rules" name="countrySpecificRules" defaultChecked={true} /><Label htmlFor="country-specific-rules" className='flex items-center gap-2 text-muted-foreground'><Globe size={16}/>Country-Specific Rules</Label></div>
                                     <div className="flex items-center space-x-2"><Checkbox id="visa-readiness" name="visaReadiness" defaultChecked={true} /><Label htmlFor="visa-readiness" className='flex items-center gap-2 text-muted-foreground'><Ship size={16}/>Visa Sponsorship Readiness</Label></div>
-                                    <div className="flex items-center space-x-2"><Checkbox id="export-formats" name="exportFormats" defaultChecked={true} /><Label htmlFor="export-formats" className='flex items-center gap-2 text-muted-foreground'><FileJson size={16}/>Resume Export Formats</Label></div>
                                 </CardContent>
                             </Card>
                         </div>
@@ -448,7 +446,7 @@ export default function Home() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2" ref={resultsRef}>
-                     <Card className="bg-black/20 border-primary/20 backdrop-blur-xl shadow-2xl shadow-primary/20 flex flex-col overflow-hidden min-h-[500px]">
+                     <Card className="bg-black/20 border-primary/20 backdrop-blur-xl shadow-2xl shadow-primary/20 flex flex-col overflow-hidden min-h-[500px] print-section">
                         <CardContent className="p-0 flex-grow">
                             <div className='p-6 min-h-[500px] flex flex-col justify-center'>
                                 {renderMainPanelContent()}
@@ -457,7 +455,7 @@ export default function Home() {
                     </Card>
                 </div>
 
-                <div className="space-y-8">
+                <div className="space-y-8 no-print">
                     <FeedbackDisplayCard />
                     <Card className="bg-black/20 border-primary/20 backdrop-blur-xl shadow-2xl shadow-primary/20 flex flex-col">
                         <CardHeader className='flex-row items-center justify-between pb-4'>
@@ -520,11 +518,10 @@ export default function Home() {
                 </div>
             </div>
 
-            <div className="space-y-8 pt-8">
+            <div className="space-y-8 pt-8 no-print">
               <FeatureCarousel />
               <HowToUse />
               <RoadmapCard />
-              <ReadmeCard />
             </div>
         </div>
     </div>

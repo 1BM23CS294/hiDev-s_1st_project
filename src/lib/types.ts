@@ -19,7 +19,6 @@ import type {
   RankCandidateOutput,
   BenchmarkCandidateOutput,
   GetHiringFunnelInsightsOutput,
-  ResumeExportOutput,
   CountryResumeRulesOutput,
   VisaSponsorshipOutput,
 } from '@/ai/flows';
@@ -50,7 +49,6 @@ export type { BenchmarkCandidateOutput } from '@/ai/flows';
 export type { GetHiringFunnelInsightsOutput } from '@/ai/flows';
 
 // Integrations & International
-export type { ResumeExportOutput } from '@/ai/flows';
 export type { CountryResumeRulesOutput } from '@/ai/flows';
 export type { VisaSponsorshipOutput } from '@/ai/flows';
 
@@ -90,7 +88,6 @@ export type AnalyzedCandidate = {
   funnelInsights?: GetHiringFunnelInsightsOutput;
   
   // Integrations & International
-  resumeExports?: ResumeExportOutput;
   countryRules?: CountryResumeRulesOutput;
   visaSponsorship?: VisaSponsorshipOutput;
 };

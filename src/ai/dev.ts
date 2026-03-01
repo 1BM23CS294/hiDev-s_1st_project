@@ -22,7 +22,6 @@ import '@/ai/flows/internship-readiness-flow.ts';
 import '@/ai/flows/candidate-ranking-flow.ts';
 import '@/ai/flows/team-benchmarking-flow.ts';
 import '@/ai/flows/hiring-funnel-insights-flow.ts';
-import '@/ai/flows/resume-export-flow.ts';
 import '@/ai/flows/country-resume-rules-flow.ts';
 import '@/ai/flows/visa-sponsorship-flow.ts';
 import '@/ai/flows/project-idea-generator-flow.ts';

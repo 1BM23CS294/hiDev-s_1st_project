@@ -33,9 +33,9 @@ import {
   School,
   Medal,
   Filter,
-  FileJson,
   Globe,
   Ship,
+  Printer,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -51,7 +51,7 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
     videoAnalysis, workLifeBalance, networking, resumeRewrite,
     roast, confidenceReport, brandCheck, hiddenStrengths, riskAssessment, skillWarning, versionSuggestion, internshipReport,
     ranking, benchmark, funnelInsights,
-    resumeExports, countryRules, visaSponsorship,
+    countryRules, visaSponsorship,
   } = data;
 
   return (
@@ -61,15 +61,21 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
               <h2 className="text-2xl font-bold sm:text-3xl">{candidate.name}</h2>
               <p className="text-sm text-muted-foreground">Analysis based on file: {data.fileName}</p>
           </div>
-           <div className='flex flex-col items-end gap-2'>
-             <Badge variant="outline" className='text-sm border-primary/50 text-primary'>New Analysis</Badge>
-              {candidate.detectedLanguage && candidate.detectedLanguage.toLowerCase() !== 'english' && (
-                <Badge variant="secondary" className="flex items-center gap-1.5">
-                  <Languages size={14} />
-                  Translated from {candidate.detectedLanguage}
-                </Badge>
-              )}
-           </div>
+          <div className='flex items-center gap-4'>
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="no-print">
+                <Printer size={16} className="mr-2" />
+                Print Report
+            </Button>
+            <div className='flex flex-col items-end gap-2'>
+                <Badge variant="outline" className='text-sm border-primary/50 text-primary'>New Analysis</Badge>
+                {candidate.detectedLanguage && candidate.detectedLanguage.toLowerCase() !== 'english' && (
+                    <Badge variant="secondary" className="flex items-center gap-1.5">
+                    <Languages size={14} />
+                    Translated from {candidate.detectedLanguage}
+                    </Badge>
+                )}
+            </div>
+          </div>
       </div>
       
       <div className="space-y-6">
@@ -702,27 +708,6 @@ export function CandidateReport({ data }: { data: AnalyzedCandidate }) {
                        <h4 className='font-semibold mb-2'>Explanation</h4>
                        <p className='text-sm text-muted-foreground'>{visaSponsorship.explanation}</p>
                     </div>
-                </CardContent>
-            </Card>
-        )}
-        
-        {resumeExports && (
-            <Card className='bg-black/20 border border-primary/20 backdrop-blur-lg shadow-lg shadow-primary/10'>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-primary text-xl">
-                        <FileJson size={20} /> Export Resume
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    {resumeExports.exportFormats.map((format, i) => (
-                        <div key={i} className="p-3 bg-black/20 rounded-lg flex justify-between items-center">
-                            <div>
-                                <p className='font-semibold'>{format.formatName}</p>
-                                <p className='text-xs text-muted-foreground'>{format.description}</p>
-                            </div>
-                            <Button variant="ghost" size="sm" asChild><Link href={format.downloadUrl} target="_blank"><LinkIcon size={14} /> Download</Link></Button>
-                        </div>
-                    ))}
                 </CardContent>
             </Card>
         )}
