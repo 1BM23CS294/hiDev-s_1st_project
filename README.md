@@ -1,67 +1,70 @@
 # Welcome to the Intelligent Resume Analyzer!
 
-This app is your personal AI assistant for understanding resumes. Whether you're a recruiter looking for the perfect candidate or a job seeker aiming to improve your resume, this tool is for you.
-
----
+This app is your personal AI assistant for understanding resumes. 
+Whether you're a recruiter looking for the perfect candidate or 
+a job seeker aiming to improve your resume, this tool is for you.
 
 ## What Can It Do?
-
 *   **Analyze Resumes:** Upload a resume and a job description to see how well they match.
 *   **Compare Two Candidates:** Upload two resumes to get a side-by-side comparison.
 *   **Get Deep AI Insights:** Go beyond simple scores. Discover strengths, weaknesses, and even get a fun "resume roast" for constructive feedback.
 *   **Explore Career Tools:** Predict salary ranges, check for in-demand skills, and get personalized tips for improvement.
 *   **Save Your Work:** Sign up for a free account to save and review your analysis reports anytime.
 
----
-
-## Local Setup: Step-by-Step Guide
-
+## Local Setup: Step-by-Step Guide!
 Follow these steps to run the Intelligent Resume Analyzer on your own computer.
 
-### Step 1: Check Prerequisites
-Make sure you have **Node.js** installed on your computer. This is essential for running the application.
+**Step 1: Download the Project from GitHub**
 
-### Step 2: Install Project Dependencies
-Open your computer's terminal (command prompt) and navigate to your project's folder. Then, run the following command to install all the necessary code packages:
-```bash
-npm install
-```
+Open the GitHub repository in your browser.
+Click on the Code button.
+Select Download ZIP.
+The ZIP file will be downloaded to your system.
 
-### Step 3: Get Your Free Google AI API Key
-This app uses Google's Gemini AI. To use its features, you need a free, personal API key.
+**Step 2: Extract the ZIP File**
 
-1.  **Go to Google AI Studio**: Visit [Google AI Studio](https://aistudio.google.com/app/apikey).
-2.  **Create & Copy Your Key**: Follow the on-screen steps to create a new API key and copy it.
+Go to your Downloads folder.
+Click on the downloaded ZIP file.
+Click Extract All.
+Open the extracted project folder.
 
-> **Important**: Your API key is like a personal password for Google's AI services. It must be kept secret. Using your own key keeps your usage secure. The process is quick and free.
+**Step 3: Open Project in VS Code**
 
-### Step 4: Add Your API Key to the Project
-You need to tell the application what your API key is.
+Inside the extracted project folder, right-click on an empty area.
+Click Open in Terminal.
+In the terminal, type:
+**code .**
+Press Enter.
+This will open the entire project in VS Code.
 
-1.  **Find the `.env` file**: In the main project folder, locate the file named `.env`. The key inside is just a placeholder.
-2.  **Paste Your Key**: Open this file and replace the placeholder key with the unique key you copied from Google AI Studio.
+**Step 4: Open Terminal in VS Code**
 
-    It should look like this after you edit it:
-    ```
-    GEMINI_API_KEY="AIzaSy...your...unique...key..."
-    ```
+After VS Code opens:
+Use the shortcut key:
+Ctrl + `
+(backtick key below Esc)
+OR
+Click Terminal → New Terminal
 
-### Step 5: Start the App!
-You're ready to go. To start the application, run this command in your terminal:
-```bash
-npm run dev
-```
-This will start the local development server.
+**Step 5: Install Required Dependencies**
 
-### Step 6: View the App in Your Browser
-Open your web browser and navigate to the address below to see the application in action:
-**[http://localhost:9002](http://localhost:9002)**
+In the VS Code terminal, type:
+**npm i**
+This will install all the required project dependencies.
 
----
+**Step 6: Run the Project**
+After installation is complete, type:
+**npm run dev**
 
-## Technology We Use
+**Step 7: Access the Website**
 
-*   **Framework:** Next.js
-*   **Artificial Intelligence:** Google Gemini
-*   **User Interface:** React, Tailwind CSS, and shadcn/ui
-*   **Backend:** Firebase (for user accounts and data storage)
+After running the command, a local development link will appear in the terminal, such as:
+**http://localhost:5173**
+Copy this link and paste it into your browser.
+Now the website will be successfully running on your local system.
+
+**⚠ Important Requirements**
+
+Node.js must be installed on your system.
+Do not delete any project files.
+Always run npm i before starting the project for the first time.
